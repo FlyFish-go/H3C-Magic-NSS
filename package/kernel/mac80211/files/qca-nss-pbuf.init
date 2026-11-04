@@ -58,6 +58,18 @@ apply_sysctl() {
 
 }
 
+# 256 MiB IPQ5018: OpenWrt's min_free_kbytes=16384 plus the default
+# watermark boost put the min watermark at ~20 MB, and with ~88 MB held by
+# NSS/ath11k buffers no counter names, the kernel OOM-kills with 17 MB free
+# (measured on H3C Magic boards). Lower the reserve to 4096 and drop the boost; the
+# per-CPU free lists are capped by set_pcp_high_fraction. Each knob is only
+# touched while it still has the kernel's / OpenWrt's default.
+vm_tune_256m() {
+  [ "$(sysctl -n -e vm.min_free_kbytes)" = 16384 ] && sysctl -w vm.min_free_kbytes=4096 > /dev/null 2>&1
+  [ "$(sysctl -n -e vm.watermark_boost_factor)" = 15000 ] && sysctl -w vm.watermark_boost_factor=0 > /dev/null 2>&1
+  logger -t $NAME "256 MB IPQ5018: min_free_kbytes=$(sysctl -n vm.min_free_kbytes) watermark_boost_factor=$(sysctl -n vm.watermark_boost_factor)"
+}
+
 # The queue the firmware hands the host its packets through: traffic for the
 # router itself, the first packets of a new flow, exceptions. Forwarded
 # (offloaded) traffic does not pass it. The firmware's default of 256 packets
@@ -226,7 +238,14 @@ apply_nss_config() {
       # Wi-Fi frames under load, 2048 is the tested fallback.
     256 | 256m*)
       if soc_is_ipq5018; then
-        extra_pbuf_core0=800000 n2h_high_water_core0=16336 n2h_wifi_pool_buf=0 apply_sysctl
+        # 16336 is QSDK's MP_256 value for a 32-bit kernel, where a payload
+        # costs 2 KiB; here each costs 4 KiB, so the same count is twice the
+        # memory. On H3C Magic boards (256 MiB, IPQ5018/IPQ5000 + QCN6102)
+        # 5 GHz downlink drove the host pool past 10k buffers and OOM-killed
+        # hostapd; capped at 8192 it peaks at ~8.4k with the same
+        # throughput (MT7612U client, 4 streams: ~420 Mbit/s down).
+        extra_pbuf_core0=800000 n2h_high_water_core0=8192 n2h_wifi_pool_buf=0 apply_sysctl
+        vm_tune_256m
       else
         extra_pbuf_core0=3100000 n2h_high_water_core0=30258 n2h_wifi_pool_buf=4096 apply_sysctl
       fi
