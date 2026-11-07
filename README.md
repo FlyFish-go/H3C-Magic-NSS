@@ -1,99 +1,74 @@
-# OpenWrt with NSS hardware offload for IPQ50xx (IPQ5018)
+# H3C Magic NSS：OpenWrt 主线 + NSS 硬件加速（H3C Magic NX30 / RC3000 / RT3000 / RW3000 系列）
 
-This is OpenWrt main with Qualcomm NSS hardware offload for IPQ5018
-routers. The NSS firmware runs on top of the upstream `stmmac` ethernet
-driver on kernel 6.18, and the switch keeps its DSA driver. It does not use
-the out-of-tree `qca-nss-dp` and `qca-ssdk` drivers.
+本仓库只为 H3C Magic 系列（IPQ5018 / IPQ5000，256 MB 内存）构建 OpenWrt。它基于
+[kuncy7/openwrt-nss-edma](https://github.com/kuncy7/openwrt-nss-edma)：OpenWrt 主线、内核 6.18，
+加上高通 NSS 硬件加速（有线 NAT、Wi-Fi offload、PPPoE、VLAN、SQM 队列），以太网走上游的
+`stmmac` 驱动。我们在上面加了四个硬件系列的板级支持和 256 MB 机型需要的调整。
 
-Offloaded: IPv4 NAT and routing through ECM, PPPoE, 802.1Q VLAN and
-VLAN-aware bridges, the NSS qdiscs for SQM, and ath11k Wi-Fi offload. It is
-validated on the GL.iNet GL-B3000 and the TP-Link Archer AX55 v1, and users
-run it on more IPQ5018 boards.
+> **测试版。** 这是给愿意尝鲜的用户的预览版，请保留另一个系统槽作退路。稳定使用请继续用
+> [H3C-RT3000-Product-R1](https://github.com/FlyFish-go/H3C-RT3000-Product-R1) 的 QSDK 固件（r10）。
+> 问题和测试结果请提 [Issue](https://github.com/FlyFish-go/H3C-Magic-NSS/issues)。
 
-Everything else is in **[README.ipq50xx.md](README.ipq50xx.md)**: what the
-commits are, how to build, how the plane comes up, the two topologies, the
-support matrix, the boards, and how to port another IPQ5018 board.
+## 和 kuncy7 上游的区别
 
-- Prebuilt images are on the
-  [Releases page](https://github.com/kuncy7/openwrt-nss-edma/releases).
-- The NSS packages (driver, ECM, qdiscs, firmware) are in the
-  [kuncy7/nss-packages](https://github.com/kuncy7/nss-packages/tree/ipq50xx-rebase)
-  feed, branch `ipq50xx-rebase`. `feeds.conf.default` already names it.
-- Discussion and test reports are in the
-  [forum thread](https://forum.openwrt.org/t/ipq5018-nss-offload-on-kernel-6-18-with-the-upstream-ethernet-stack-gl-b3000/253014).
+- 四个硬件系列的板级支持（与 OpenWrt 上游 PR [#26453](https://github.com/openwrt/openwrt/pull/26453) 相同的板子，
+  改成本树的 NSS 绑定）。
+- **NSS 固件用 12.2-156，不用 12.5-210。** 12.5 在这几台 256 MB 机器上，遇到重传多的 Wi-Fi 客户端
+  （例如老的 11n/11ac USB 网卡）会不断占住 NSS 缓冲，几分钟后有线就断流，最后 hostapd 被 OOM 杀掉。
+  12.2 没有这个问题。详情见 [kuncy7/openwrt-nss-edma#64](https://github.com/kuncy7/openwrt-nss-edma/issues/64)。
+- 256 MB 机型的内存调整（NSS 主机缓冲池上限、VM 预留），默认设置下 5G 满速下载会 OOM。
+- 引导程序传入的 NAND ECC 强度（QPIC），以及 H3C 原厂网页升级包格式（`mkh3cqca`）。
 
-## Where this tree comes from
+这些改动会继续提交给上游；上游合并后这里也会跟进。
 
-The tree is a fork of Julius Bairaktaris's `nss-edma-rework`: OpenWrt main
-with the vendor NSS stack (`qca-nss-drv`, ECM, the NSS qdiscs, ath11k
-offload) on the upstream `qca_edma` and `qca_ppe` drivers of IPQ807x and
-IPQ60xx. The IPQ5018 port is layered on it. The idea is the same, the
-ethernet driver and the glue module are different.
+## 选哪个镜像
 
-In October 2026 that project became
-[PPE-NSS](https://github.com/JuliusBairaktaris/openwrt-ppe-nss): NSS offload
-without the vendor stack, with the wired traffic in the hardware PPE. Its
-vendor-stack line is archived. IPQ5018 has no PPE, and its wired
-acceleration is the NSS firmware itself, so this branch stays on the vendor
-stack and carries that line by itself from here on. There is no upstream of
-it left to sync with. The base is `nss-edma-rework` as it was archived under
-the `vendor-nss-archive` tag, which sits on OpenWrt main of 9 October 2026.
-
-The IPQ807x and IPQ60xx parts of that line are still in the tree as they
-were, but nothing here builds or tests them. For those SoCs use
-[openwrt-ppe-nss](https://github.com/JuliusBairaktaris/openwrt-ppe-nss).
-
-## Branches
-
-| Branch | What |
+| 硬件系列 | 镜像文件里的设备名 |
 |---|---|
-| `c3po-tag-8021q` | The default branch. Pull requests go here. |
-| `ipq50xx-rebase` | Frozen on 2026-09-17. It proved that the offload works with the upstream ethernet driver. |
-| `ipq50xx-nss` | Archive of the series before the rebase. |
-| `julius-archive/vendor-nss-archive` | The base of the default branch: `nss-edma-rework` at its `vendor-nss-archive` tag. |
-| `julius-archive/nss-edma-rework` | The final state of `nss-edma-rework`, with its archive notice. |
-| `julius-archive/nss-edma-7.3-vendor-20261011` | The vendor stack with the 7.3 testing kernel. |
+| HW-A | `h3c_magic-rc3000-v2` |
+| HW-B | `h3c_magic-rc3000-v1` |
+| HW-C | `h3c_magic-rc3000-v3` |
+| HW-D | `h3c_magic-nx30` |
 
-The feed has the matching branches (`julius-archive/vendor-nss-archive`,
-`julius-archive/edma-nss`, `julius-archive/edma-nss-7.3-feed-20261011`) and
-a copy of the pinned source archives in its `nss-source-tarballs` release.
-[kuncy7/mac80211-nss-staging](https://github.com/kuncy7/mac80211-nss-staging)
-is a fork of the repository the mac80211 NSS patch series was exported
-from. The `julius-archive` branches are kept as they were and take no
-changes.
+硬件系列看 [H3C-NX30-Uboot](https://github.com/FlyFish-go/H3C-NX30-Uboot) 救援页的系统信息。同一个零售型号可能是不同的硬件系列，**不要按型号选镜像**。
 
-## Building
+## 安装
 
-```sh
-git clone https://github.com/kuncy7/openwrt-nss-edma.git
-cd openwrt-nss-edma
+需要 [H3C-NX30-Uboot](https://github.com/FlyFish-go/H3C-NX30-Uboot) v0.1.0 或更新。
+
+1. 进入 U-Boot 救援页，在「固件更新」把 `*-factory.ubi` 写进**你不需要的那个系统槽**
+   （另一个槽保留原厂系统或 r10 QSDK，出问题可以切回去）。
+2. 在启动选择里从这个槽启动，确认能用后再设为默认。
+3. 首次启动：LAN `192.168.1.1`，root 没有密码，**Wi-Fi 默认关闭**（OpenWrt 惯例），在 LuCI 里设置。
+
+已经在用本仓库的固件：系统内升级用 `*-sysupgrade.bin`（可以保留配置）。
+
+**不要**从 r10 QSDK 里直接 sysupgrade 到本固件，分区和系统都不同；请用救援页写另一个槽。
+
+## 已知情况
+
+- 没有官方 kmod 软件源：额外内核模块只能装同一次构建出来的，官方源的 kmod 版本对不上，装不上。
+- 有线 NAT 受单个 CPU 端口限制，上限约 940 Mbit/s。
+- 还没有做长时间稳定性测试，这正是需要大家帮忙的：跑几天，把 `logread`、`dmesg`、
+  `cat /sys/kernel/debug/qca-nss-drv/stats/n2h` 发到 Issue。
+
+## 自己编译
+
+```
 ./scripts/feeds update -a && ./scripts/feeds install -a
-make menuconfig   # qualcommax/ipq50xx, nss-tools-dwmac as <*>
-make -j$(nproc)
+cat .github/ci/ipq50xx/common.config .github/ci/ipq50xx/h3c.config > .config
+make defconfig && make -j$(nproc)
 ```
 
-The *Quick start* section of [README.ipq50xx.md](README.ipq50xx.md) has the
-details and the checks worth doing on a fresh image.
+NSS 部分的结构、拓扑和移植说明见 [README.ipq50xx.md](README.ipq50xx.md)，上游项目的原始首页见 [README.upstream.md](README.upstream.md)（均为 kuncy7 编写）。
 
-## Acknowledgements
+## English
 
-- [Julius Bairaktaris](https://github.com/JuliusBairaktaris) for the tree
-  this is layered on, and for the idea of running NSS on the upstream
-  drivers. His work can be supported through
-  [GitHub Sponsors](https://github.com/sponsors/JuliusBairaktaris) or
-  [PayPal](https://paypal.me/JuliusBairaktaris).
-- [George Moussalem](https://github.com/georgemoussalem) for the ipq50xx
-  target and the upstream stmmac and uniphy conversion.
-- [Robert Marko (robimarko)](https://github.com/robimarko) for maintaining the
-  OpenWrt qualcommax target.
-- [qosmio](https://github.com/qosmio/openwrt-ipq) for the NSS packaging and
-  firmware tarballs the feed builds on.
-- Qualcomm and CodeLinaro for the open-source NSS host components.
-
-The people who tested, reported and contributed boards are named in
-[README.ipq50xx.md](README.ipq50xx.md).
-
-## License
-
-GPL-2.0, see [LICENSE](LICENSE). The NSS components keep their upstream
-licenses.
+OpenWrt main (kernel 6.18) with Qualcomm NSS offload, built only for the H3C Magic family
+(IPQ5018/IPQ5000, 256 MB): HW-A = `h3c_magic-rc3000-v2`, HW-B = `h3c_magic-rc3000-v1`,
+HW-C = `h3c_magic-rc3000-v3`, HW-D = `h3c_magic-nx30`. Based on kuncy7/openwrt-nss-edma; adds the
+board support (same boards as openwrt/openwrt#26453), 256 MB memory tuning, and builds with NSS
+firmware 12.2-156 because 12.5-210 leaks host payload buffers on these boards with high-retry Wi-Fi
+clients (kuncy7/openwrt-nss-edma#64). Install `*-factory.ubi` into a spare slot from the
+H3C-NX30-Uboot (v0.1.0+) rescue page; upgrade with `*-sysupgrade.bin`. Preview quality: report
+issues here.
