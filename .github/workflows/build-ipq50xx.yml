@@ -325,7 +325,7 @@ jobs:
           } >>"$GITHUB_STEP_SUMMARY"
 
       - name: Keep the package repository for the pages job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: packages-${{ matrix.group }}
           path: bin/targets/${{ env.TARGET }}/packages/
@@ -355,7 +355,7 @@ jobs:
             git checkout -q --orphan gh-pages
           fi
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: packages-*
           path: site/${{ needs.release.outputs.tag }}
