@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Runs on the first boot of every new image, also after a keep-settings
+# sysupgrade: only change what is still at its default.
+
+. /lib/functions.sh
+
+case "$(board_name)" in
+h3c,magic-*) ;;
+*) exit 0 ;;
+esac
+
+# LuCI's time zone list goes by the zone name; board.d can only set the
+# POSIX string, and config_generate leaves the name at UTC
+if [ "$(uci -q get system.@system[0].timezone)" = "CST-8" ] &&
+   [ "$(uci -q get system.@system[0].zonename)" = "UTC" ]; then
+	uci -q set system.@system[0].zonename='Asia/Shanghai'
+	uci -q commit system
+fi
+
+# LuCI in Chinese, once: a language the user picks later stays
+if [ -z "$(uci -q get luci.main.h3c_defaults)" ] && uci -q get luci.main >/dev/null; then
+	[ "$(uci -q get luci.main.lang)" = "auto" ] && uci -q set luci.main.lang='zh_cn'
+	uci -q set luci.main.h3c_defaults='1'
+	uci -q commit luci
+fi
+
+# The generated feed list names this build's kmod repository on
+# downloads.openwrt.org and an nss feed. Neither exists for this image: the
+# official kmods are built for another kernel and apk refuses them, and
+# there is no official nss feed. Packages without kernel modules (LuCI
+# apps, tools) still come from the official snapshot feeds.
+feeds=/etc/apk/repositories.d/distfeeds.list
+if [ -f "$feeds" ]; then
+	sed -i -e '\#/targets/#d' -e '\#/packages/[^/]*/nss/#d' "$feeds"
+fi
+
+exit 0

@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# Defaults for a fresh configuration. board.d only runs while
+# /etc/board.json is missing, and config_generate and the mac80211
+# detection only write sections that do not exist yet, so after a
+# keep-settings sysupgrade the user's network and Wi-Fi stay as they are.
+
+. /lib/functions/uci-defaults.sh
+
+case "$(board_name)" in
+h3c,magic-nx30|\
+h3c,magic-rc3000-v1|\
+h3c,magic-rc3000-v2|\
+h3c,magic-rc3000-v3)
+	;;
+*)
+	exit 0
+	;;
+esac
+
+board_config_update
+
+# the subnet of the H3C QSDK images, so a switch between the two keeps it
+ucidef_set_interface "lan" ipaddr "192.168.10.1"
+ucidef_set_hostname "H3C-Magic"
+[ -f /var/run/uboot-env/owrt_timezone ] || ucidef_set_timezone "CST-8"
+ucidef_set_ntpserver "ntp.aliyun.com" "ntp.tencent.com" "cn.pool.ntp.org" "0.openwrt.pool.ntp.org"
+
+# Both bands up with WPA2, as on the QSDK images. ath11k radios are
+# self-managed: without a country the firmware's default stays in force,
+# and mac80211 leaves a 5 GHz radio without a country switched off.
+# Values set in the U-Boot environment (05_fw_defaults: owrt_ssid,
+# owrt_wifi_key, owrt_country) take precedence.
+[ -f /var/run/uboot-env/owrt_country ] || ucidef_set_country "CN"
+if ! [ -f /var/run/uboot-env/owrt_ssid ] || ! [ -f /var/run/uboot-env/owrt_wifi_key ]; then
+	ucidef_set_wireless "2g" "OpenWrt" "psk2" "12345678"
+	ucidef_set_wireless "5g" "OpenWrt-5G" "psk2" "12345678"
+fi
+
+board_config_flush
+
+exit 0
