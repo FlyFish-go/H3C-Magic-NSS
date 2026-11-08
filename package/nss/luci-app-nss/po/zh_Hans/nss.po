@@ -1,0 +1,323 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: luci-app-nss\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:163
+msgid "%s IPv4 / %s IPv6 / %s multicast"
+msgstr "%s 个 IPv4 / %s 个 IPv6 / %s 个组播"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:160
+msgid "%s pkts/s (NSS→host)"
+msgstr "%s 包/秒（NSS→主机）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:165
+msgid "Bridge offload (bridge-mgr)"
+msgstr "网桥卸载（bridge-mgr）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:18
+msgid "CPU temperature"
+msgstr "CPU 温度"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:162
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:119
+msgid "ECM accelerated connections"
+msgstr "ECM 加速连接"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:164
+msgid "ECM not loaded"
+msgstr "ECM 未加载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:144
+msgid ""
+"Each standalone switch port reaches the firmware as its own VLAN node on the "
+"GMAC above. A bridge has one node that all its switch ports share, and a "
+"VLAN-aware bridge has one for each of its VLANs."
+msgstr "每个独立的交换机端口在上面的 GMAC 上作为单独的 VLAN 节点接入固件。一个网桥只有一个节点，由它的所有交换机端口共用；启用 VLAN 过滤的网桥则每个 VLAN 各有一个节点。"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:177
+msgid "Fast lane"
+msgstr "快速通道"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:159
+msgid "Firmware"
+msgstr "固件"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:21
+msgid ""
+"Firmware armed but heartbeat silent — check the system log; a reboot returns "
+"to the host stack"
+msgstr "固件已启用但没有心跳——请查看系统日志；重启后回到主机协议栈"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:181
+msgid "Firmware-attached ports"
+msgstr "接入固件的端口"
+
+#: package/nss/luci-app-nss/root/usr/share/rpcd/acl.d/luci-app-nss.json:3
+msgid "Grant access to the NSS offload status page"
+msgstr "授予访问 NSS 卸载状态页面的权限"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:160
+msgid "Heartbeat"
+msgstr "心跳"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:22
+msgid "Host stack (NSS plane not armed)"
+msgstr "主机协议栈（NSS 数据面未启用）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:101
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:148
+msgid "Link"
+msgstr "链路"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:214
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:93
+#: package/nss/luci-app-nss/root/usr/share/luci/menu.d/luci-app-nss.json:3
+msgid "NSS Offload"
+msgstr "NSS 卸载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:114
+msgid "NSS core %s load"
+msgstr "NSS 核心 %s 负载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:161
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:114
+msgid "NSS core load"
+msgstr "NSS 核心负载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:64
+msgid "NSS offload active (wifili)"
+msgstr "NSS 卸载已生效（wifili）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:62
+msgid "NSS offload active (wifili, 802.11s mesh offloaded)"
+msgstr "NSS 卸载已生效（wifili，802.11s Mesh 已卸载）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:63
+msgid "NSS offload active (wifili; 802.11s mesh configured, not offloaded)"
+msgstr "NSS 卸载已生效（wifili；已配置 802.11s Mesh，未卸载）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:19
+msgid "NSS temperature"
+msgstr "NSS 温度"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:194
+msgid "No ports attached — host stack"
+msgstr "没有接入的端口——主机协议栈"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:92
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:138
+msgid "Node"
+msgstr "节点"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:20
+msgid "Offload active"
+msgstr "卸载已生效"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:197
+msgid ""
+"Offloaded packets are forwarded by the firmware and never reach the host. "
+"\"via host\" / \"to host\" is the host↔firmware exception path — what was "
+"not offloaded — so low numbers there mean offload is working. Broadcast and "
+"multicast discovery, connection setup, short-lived flows and traffic "
+"addressed to the router itself always take that path: a flow is only "
+"offloaded once it is established, so a quiet port that carries little else "
+"shows a low offloaded share. Port totals are on Status → Overview."
+msgstr "已卸载的数据包由固件直接转发，不经过主机。“经主机”/“到主机”是主机与固件之间的例外路径，也就是没有被卸载的流量，所以这里数字越小说明卸载越有效。广播和组播发现、连接建立、短连接以及发给路由器自身的流量总是走这条路径：一条连接要建立之后才会被卸载，因此流量很少的端口卸载占比会偏低。各端口的总量见“状态 → 概览”。"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:21
+msgid "Other SoC temperature"
+msgstr "其他 SoC 温度"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:166
+msgid "PPPoE manager"
+msgstr "PPPoE 管理器"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:131
+msgid ""
+"Packets through the firmware's Wi-Fi data path since boot, per radio. \"RX "
+"(REO)\" is every frame the radio received; \"RX delivered\" counts only "
+"frames for an AP or STA interface, so frames of an offloaded 802.11s mesh "
+"link show up in the first column only."
+msgstr "开机以来经过固件 Wi-Fi 数据通路的数据包，按射频统计。“接收（REO）”是射频收到的全部帧；“已交付接收”只统计发往 AP 或 STA 接口的帧，所以已卸载的 802.11s Mesh 链路的帧只出现在第一列。"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:75
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:100
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:147
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:184
+msgid "Port"
+msgstr "端口"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:116
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:127
+msgid "RX (REO)"
+msgstr "接收（REO）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:117
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:128
+msgid "RX delivered"
+msgstr "已交付接收"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:80
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:189
+msgid "RX offloaded"
+msgstr "接收已卸载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:103
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:150
+msgid "RX packets"
+msgstr "接收包数"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:81
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:190
+msgid "RX to host"
+msgstr "接收到主机"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:114
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:125
+msgid "Radio"
+msgstr "射频"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:168
+msgid "SQM shaper"
+msgstr "SQM 整形器"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:77
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:186
+msgid "Started"
+msgstr "已启动"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:95
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:141
+msgid "Switch ports"
+msgstr "交换机端口"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:135
+msgid "Switch ports and bridges on the firmware (DSA)"
+msgstr "固件上的交换机端口和网桥（DSA）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:78
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:187
+msgid "TX offloaded"
+msgstr "发送已卸载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:102
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:149
+msgid "TX packets"
+msgstr "发送包数"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:115
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:126
+msgid "TX sent"
+msgstr "已发送"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:79
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:188
+msgid "TX via host"
+msgstr "发送经主机"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:153
+msgid ""
+"The offloaded share is part of the GMAC's figures above; the totals here are "
+"each port's own switch counters, all its VLANs together."
+msgstr "卸载占比属于上面 GMAC 的统计；这里的总量是各端口自己的交换机计数，包含它的全部 VLAN。"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:167
+msgid "Wi-Fi data path"
+msgstr "Wi-Fi 数据通路"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:122
+msgid "Wi-Fi radios on the firmware"
+msgstr "固件上的 Wi-Fi 射频"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:20
+msgid "Wi-Fi temperature"
+msgstr "Wi-Fi 温度"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:69
+msgid "ath11k not loaded"
+msgstr "ath11k 未加载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:115
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:129
+msgid "avg"
+msgstr "平均"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:101
+msgid "down"
+msgstr "断开"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:177
+msgid "egress %s pkts / ingress %s pkts — %s marking rules"
+msgstr "出向 %s 包 / 入向 %s 包——%s 条标记规则"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:68
+msgid "host mode"
+msgstr "主机模式"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:66
+msgid "host mode (mesh configured; firmware supports mesh offload)"
+msgstr "主机模式（已配置 Mesh；固件支持 Mesh 卸载）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:67
+msgid "host mode (mesh configured; this NSS firmware has no mesh offload)"
+msgstr "主机模式（已配置 Mesh；此 NSS 固件不支持 Mesh 卸载）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:41
+msgid "loaded"
+msgstr "已加载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:115
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:129
+msgid "max"
+msgstr "最大"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:115
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/status/include/16_nss_offload.js:129
+msgid "min"
+msgstr "最小"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:77
+msgid "no"
+msgstr "否"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:175
+msgid "no NSS shaper"
+msgstr "无 NSS 整形器"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:175
+msgid "no NSS shaper on %s"
+msgstr "%s 上没有 NSS 整形器"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:41
+msgid "not loaded"
+msgstr "未加载"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:171
+msgid "nsstbl on %s"
+msgstr "%s 上的 nsstbl"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:170
+msgid "nsstbl on %s (a lane on the switch conduit %s)"
+msgstr "%s 上的 nsstbl（交换机通道 %s 上的一条通路）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:174
+msgid "off (no queue enabled in /etc/config/sqm)"
+msgstr "关闭（/etc/config/sqm 中没有启用的队列）"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:101
+msgid "up"
+msgstr "连接"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:172
+msgid "upload IGS: %s"
+msgstr "上传 IGS：%s"
+
+#: package/nss/luci-app-nss/htdocs/luci-static/resources/view/nss/status.js:77
+msgid "yes"
+msgstr "是"
