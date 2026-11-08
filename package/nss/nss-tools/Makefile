@@ -6,7 +6,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nss-tools
-PKG_RELEASE:=21
+PKG_RELEASE:=22
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -144,6 +144,8 @@ define Package/nss-tools-dwmac/install
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_DATA) ./files/nss-offload.defaults $(1)/etc/uci-defaults/98-nss-offload
 	$(INSTALL_DATA) ./files/nss-dwmac.defaults $(1)/etc/uci-defaults/99-nss-topology
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/ieee80211
+	$(INSTALL_DATA) ./files/nss-wifi-netifd.hotplug $(1)/etc/hotplug.d/ieee80211/20-nss-wifi-netifd
 endef
 
 define Package/nssqos/install

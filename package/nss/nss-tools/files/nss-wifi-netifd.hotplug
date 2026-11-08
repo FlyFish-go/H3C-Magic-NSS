@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# nss-dwmac-up loads ath11k after netifd has read /etc/config/wireless.
+# On a fresh configuration the file has no radio then: 10-wifi-detect
+# writes this phy's section as the phy appears and asks netifd to retry,
+# which does not make netifd read the file again, so the radio stays
+# unknown to netifd - and down, if the defaults enable it - until
+# something reloads netifd. Reload it when it lacks this phy's radio.
+# Runs per phy, so a radio that comes up later than the others is covered.
+
+[ "$ACTION" = "add" ] || exit 0
+[ -n "$DEVICENAME" ] || exit 0
+# before netifd runs (a stock boot) it reads the file itself
+ubus -S list network.wireless >/dev/null 2>&1 || exit 0
+
+dev="$(readlink -f "/sys/class/ieee80211/$DEVICENAME/device")" || exit 0
+
+for r in $(uci -q show wireless | sed -n 's/^wireless\.\([^.=]*\)=wifi-device$/\1/p'); do
+	p="$(uci -q get "wireless.$r.path")"
+	[ -n "$p" ] || continue
+	case "$dev" in
+	*/devices/"$p") ;;
+	*) continue ;;
+	esac
+	ubus call network.wireless status 2>/dev/null | jsonfilter -q -e "@.$r" >/dev/null && exit 0
+	logger -t nss-wifi "netifd has no $r ($DEVICENAME), written after it read the config - reloading netifd"
+	ubus call network reload
+	exit 0
+done
+
+exit 0
