@@ -6,7 +6,7 @@
 `stmmac` 驱动。我们在上面加了四个硬件系列的板级支持和 256 MB 机型需要的调整。
 
 镜像按日常使用配好：自带中文 LuCI（Aurora 主题）、NSS 状态页，以及 SQM、UPnP、DDNS、网络唤醒、
-网页终端、WireGuard；LAN、Wi-Fi 默认设置和 r10 QSDK 相同。
+网页终端、WireGuard、TUN（Tailscale/OpenVPN 用），概览页有按硬件计数的「端口流量」面板；LAN、Wi-Fi 默认设置和 r10 QSDK 相同。
 
 > **测试版。** 这是给愿意尝鲜的用户的预览版，请保留另一个系统槽作退路。稳定使用请继续用
 > [H3C-RT3000-Product-R1](https://github.com/FlyFish-go/H3C-RT3000-Product-R1) 的 QSDK 固件（r10）。
@@ -23,6 +23,8 @@
 - 引导程序传入的 NAND ECC 强度（QPIC），以及 H3C 原厂网页升级包格式（`mkh3cqca`）。
 - 镜像自带 LuCI 和日常使用的默认设置（上游镜像不带 LuCI、Wi-Fi 默认关闭）；NSS 状态页加了简体中文翻译。
 - 修复：射频在 netifd 启动之后才加载时，全新配置下 netifd 读不到无线配置，默认开启的 Wi-Fi 起不来。
+- 修复：NSS 固件接管网卡时，网卡里没发完的包让发送队列一直停着，开机后可能出现发送超时、LAN 口全断（已提交上游 [kuncy7/openwrt-nss-edma#74](https://github.com/kuncy7/openwrt-nss-edma/pull/74)）。
+- 「端口流量」面板（状态 → 概览）：NSS 接管后接口统计不再计数，面板改读交换芯片和网卡的硬件计数器。
 
 这些改动会继续提交给上游；上游合并后这里也会跟进。
 
@@ -56,9 +58,10 @@ Wi-Fi 和时区都不变（从 v0.1.0-pre.1 升级仍是 `192.168.1.1`），只�
 ## 已知情况
 
 - 软件源：LuCI 应用、工具这类不含内核模块的软件可以 `apk update && apk add <包名>` 从 OpenWrt 官方 snapshot 源安装。
-  **内核模块（kmod）装不了**：官方源的 kmod 是给另一个内核编的。需要的模块请提 Issue。
+  **内核模块（kmod）装不了**：官方源的 kmod 是给另一个内核编的。镜像已内置 WireGuard 和 TUN，还需要别的模块请提 Issue。
   官方 snapshot 每天更新，单独装软件没问题，**不要 `apk upgrade` 整体升级**。
 - 有线 NAT 受单个 CPU 端口限制，上限约 940 Mbit/s。
+- `ip -s link` 和 `/sys/class/net/*/statistics` 不统计被 NSS 加速的流量，请看「端口流量」面板或 `ethtool -S`。
 - 还没有做长时间稳定性测试，这正是需要大家帮忙的：跑几天，把 `logread`、`dmesg`、
   `cat /sys/kernel/debug/qca-nss-drv/stats/n2h` 发到 Issue。
 
