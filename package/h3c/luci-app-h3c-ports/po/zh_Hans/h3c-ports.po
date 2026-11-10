@@ -1,0 +1,38 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh_Hans\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Port traffic"
+msgstr "端口流量"
+
+msgid "Port"
+msgstr "端口"
+
+msgid "Link"
+msgstr "连接"
+
+msgid "No link"
+msgstr "未连接"
+
+msgid "Link up"
+msgstr "已连接"
+
+msgid "full duplex"
+msgstr "全双工"
+
+msgid "half duplex"
+msgstr "半双工"
+
+msgid "Download rate"
+msgstr "下载速率"
+
+msgid "Upload rate"
+msgstr "上传速率"
+
+msgid "Downloaded"
+msgstr "累计下载"
+
+msgid "Uploaded"
+msgstr "累计上传"

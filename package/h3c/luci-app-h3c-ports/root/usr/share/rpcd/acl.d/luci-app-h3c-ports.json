@@ -1,0 +1,10 @@
+{
+	"luci-app-h3c-ports": {
+		"description": "Grant access to the hardware port counters",
+		"read": {
+			"ubus": {
+				"h3c.ports": [ "stats" ]
+			}
+		}
+	}
+}
