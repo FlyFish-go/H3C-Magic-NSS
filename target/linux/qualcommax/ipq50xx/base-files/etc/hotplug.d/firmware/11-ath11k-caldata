@@ -1,6 +1,8 @@
 #!/bin/sh
 
-[ -e /lib/firmware/$FIRMWARE ] && exit 0
+# An empty file is what a power cut leaves behind when it hits before the
+# overlay (UBIFS) has written the extracted data back: extract it again.
+[ -s /lib/firmware/$FIRMWARE ] && exit 0
 
 . /lib/functions/caldata.sh
 
@@ -351,3 +353,7 @@ case "$FIRMWARE" in
 	exit 1
 	;;
 esac
+
+# Flush it now: ath11k fails to start the radio on an empty cal file, so
+# keep the window in which a power cut can leave one short.
+sync
