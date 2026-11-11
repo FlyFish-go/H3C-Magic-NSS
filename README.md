@@ -5,8 +5,9 @@
 加上高通 NSS 硬件加速（有线 NAT、Wi-Fi offload、PPPoE、VLAN、SQM 队列），以太网走上游的
 `stmmac` 驱动。我们在上面加了四个硬件系列的板级支持和 256 MB 机型需要的调整。
 
-镜像按日常使用配好：自带中文 LuCI（Aurora 主题）、NSS 状态页，以及 SQM、UPnP、DDNS、网络唤醒、
-网页终端、WireGuard、TUN（Tailscale/OpenVPN 用），概览页有按硬件计数的「端口流量」面板；LAN、Wi-Fi 默认设置和 r10 QSDK 相同。
+镜像只带日常必需的部分：中文 LuCI（Aurora 主题）、NSS 状态页、TUN（Tailscale/OpenVPN 用）、
+概览页按硬件计数的「端口流量」面板，以及内存压缩交换（zram）；LAN、Wi-Fi 默认设置和 r10 QSDK 相同。
+其他插件（UPnP、DDNS、WireGuard、SQM 页面、网页终端等）按需自己安装，需要的内核模块在每个版本自己的软件仓库里（见下文「软件源」）。
 
 > **测试版。** 这是给愿意尝鲜的用户的预览版，请保留另一个系统槽作退路。稳定使用请继续用
 > [H3C-RT3000-Product-R1](https://github.com/FlyFish-go/H3C-RT3000-Product-R1) 的 QSDK 固件（r10）。
@@ -25,6 +26,7 @@
 - 修复：射频在 netifd 启动之后才加载时，全新配置下 netifd 读不到无线配置，默认开启的 Wi-Fi 起不来。
 - 修复：NSS 固件接管网卡时，网卡里没发完的包让发送队列一直停着，开机后可能出现发送超时、LAN 口全断（已提交上游 [kuncy7/openwrt-nss-edma#74](https://github.com/kuncy7/openwrt-nss-edma/pull/74)）。
 - 「端口流量」面板（状态 → 概览）：NSS 接管后接口统计不再计数，面板改读交换芯片和网卡的硬件计数器。
+- 每个版本发布自己的软件仓库（内核模块、`libstdcpp6` 等工具链库、本树的软件包），镜像默认使用它。
 
 这些改动会继续提交给上游；上游合并后这里也会跟进。
 
@@ -57,9 +59,14 @@ Wi-Fi 和时区都不变（从 v0.1.0-pre.1 升级仍是 `192.168.1.1`），只�
 
 ## 已知情况
 
-- 软件源：LuCI 应用、工具这类不含内核模块的软件可以 `apk update && apk add <包名>` 从 OpenWrt 官方 snapshot 源安装。
-  **内核模块（kmod）装不了**：官方源的 kmod 是给另一个内核编的。镜像已内置 WireGuard 和 TUN，还需要别的模块请提 Issue。
-  官方 snapshot 每天更新，单独装软件没问题，**不要 `apk upgrade` 整体升级**。
+- 软件源：`apk update && apk add <包名>`，或在 LuCI「系统 → 软件包」里装。LuCI 应用和工具来自 OpenWrt 官方 snapshot 源；
+  内核模块和工具链库（`libstdcpp6` 等）来自本版本自己的仓库
+  `https://flyfish-go.github.io/H3C-Magic-NSS/<版本>/`（从 v0.1.0-pre.4 起，用本镜像的密钥签名）。
+  官方源的 kmod 是给另一个内核编的，装不上；仓库里没有的模块请提 Issue。
+  例如 WireGuard：`apk add luci-proto-wireguard`（自动装上 `kmod-wireguard`）。
+  官方 snapshot 每天更新，单独装软件没问题，**不要 `apk upgrade` 整体升级**；升级固件后，自己装的软件需要重新安装。
+- 内存：可用内存约 170 MiB（其余给 NSS 和 Wi-Fi 固件），镜像带 zram 压缩交换。AdGuard Home 这类 Go 程序加上大的拦截列表会很吃内存，
+  建议只用一份默认规模的列表。
 - 有线 NAT 受单个 CPU 端口限制，上限约 940 Mbit/s。
 - `ip -s link` 和 `/sys/class/net/*/statistics` 不统计被 NSS 加速的流量，请看「端口流量」面板或 `ethtool -S`。
 - 还没有做长时间稳定性测试，这正是需要大家帮忙的：跑几天，把 `logread`、`dmesg`、
@@ -69,7 +76,7 @@ Wi-Fi 和时区都不变（从 v0.1.0-pre.1 升级仍是 `192.168.1.1`），只�
 
 ```
 ./scripts/feeds update -a && ./scripts/feeds install -a
-cat .github/ci/ipq50xx/common.config .github/ci/ipq50xx/h3c.config > .config
+cat .github/ci/ipq50xx/common.config .github/ci/ipq50xx/kmods-extra.config .github/ci/ipq50xx/h3c.config > .config
 make defconfig && make -j$(nproc)
 ```
 
@@ -83,6 +90,9 @@ HW-C = `h3c_magic-rc3000-v3`, HW-D = `h3c_magic-nx30`. Based on kuncy7/openwrt-n
 board support (same boards as openwrt/openwrt#26453), 256 MB memory tuning, and builds with NSS
 firmware 12.2-156 because 12.5-210 leaks host payload buffers on these boards with high-retry Wi-Fi
 clients (kuncy7/openwrt-nss-edma#64). Install `*-factory.ubi` into a spare slot from the
-H3C-NX30-Uboot (v0.1.0+) rescue page; upgrade with `*-sysupgrade.bin`. The images ship LuCI
-(Chinese, Aurora theme) and the QSDK defaults: LAN 192.168.10.1, Wi-Fi `OpenWrt` / `OpenWrt-5G` with key
+H3C-NX30-Uboot (v0.1.0+) rescue page; upgrade with `*-sysupgrade.bin`. The images are lean: LuCI
+(Chinese, Aurora theme), the NSS status page, kmod-tun, a port traffic table and zram swap; other apps
+install from the official feeds, and each release publishes its own package repository (kernel modules,
+toolchain libraries such as libstdcpp6) on GitHub Pages, which the image uses instead of the official
+target feed. Defaults are the QSDK ones: LAN 192.168.10.1, Wi-Fi `OpenWrt` / `OpenWrt-5G` with key
 `12345678`, country CN - change the passwords. Preview quality: report issues here.
