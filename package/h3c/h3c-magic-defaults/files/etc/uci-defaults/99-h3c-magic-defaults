@@ -25,14 +25,28 @@ if [ -z "$(uci -q get luci.main.h3c_defaults)" ] && uci -q get luci.main >/dev/n
 	uci -q commit luci
 fi
 
-# The generated feed list names this build's kmod repository on
-# downloads.openwrt.org and an nss feed. Neither exists for this image: the
-# official kmods are built for another kernel and apk refuses them, and
-# there is no official nss feed. Packages without kernel modules (LuCI
-# apps, tools) still come from the official snapshot feeds.
+# The generated feed list names the official target feed and an nss feed.
+# Neither fits this image: the official kernel modules are built for
+# another kernel (apk refuses them), and there is no official nss feed.
+# Each release publishes the package repository of its own build instead:
+# kernel modules, toolchain libraries (libstdcpp6, ...) and the packages of
+# this tree, signed with the key in this image. Packages without kernel
+# modules (LuCI apps, tools) still come from the official snapshot feeds.
 feeds=/etc/apk/repositories.d/distfeeds.list
+repo=
+. /etc/openwrt_release
+case "$DISTRIB_DESCRIPTION" in
+*H3C-Magic-NSS-v[0-9]*)
+	repo="https://flyfish-go.github.io/H3C-Magic-NSS/${DISTRIB_DESCRIPTION##*H3C-Magic-NSS-}/packages.adb"
+	;;
+esac
 if [ -f "$feeds" ]; then
-	sed -i -e '\#/targets/#d' -e '\#/packages/[^/]*/nss/#d' "$feeds"
+	sed -i -e '\#/packages/[^/]*/nss/#d' "$feeds"
+	if [ -n "$repo" ]; then
+		sed -i -e "s#^[^\#]*/targets/.*#$repo#" "$feeds"
+	else
+		sed -i -e '\#/targets/#d' "$feeds"
+	fi
 fi
 
 exit 0
