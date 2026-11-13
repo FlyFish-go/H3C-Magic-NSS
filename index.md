@@ -9,4 +9,7 @@ install on an image from the same build. Each image lists its own directory in
 每个版本一个目录，是该版本构建出来的软件仓库（内核模块、`libstdcpp6` 等工具链库、本项目的软件包），
 用该版本镜像里的密钥签名。内核模块只能装在同一次构建的固件上；固件默认已配置好自己的目录。
 
+- [v0.1.0-pre.5](v0.1.0-pre.5/packages.adb) — [release](https://github.com/FlyFish-go/H3C-Magic-NSS/releases/tag/v0.1.0-pre.5)
 - [v0.1.0-pre.4](v0.1.0-pre.4/packages.adb) — [release](https://github.com/FlyFish-go/H3C-Magic-NSS/releases/tag/v0.1.0-pre.4)
+
+Online update manifest / 在线更新清单: [update/update.json](update/update.json)
