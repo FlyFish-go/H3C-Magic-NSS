@@ -1,19 +1,15 @@
-name: Anything else
-description: Board support, a proposal, a tracking note — not a bug report
-labels: ["needs-triage"]
+name: 建议或其他 / Suggestion or other
+description: 功能建议、软件包需求、新机型、提问 / Feature ideas, package requests, new boards, questions
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Something broken on an image from this tree goes in the **Bug report** form
-        instead; this one is not triaged for completeness. Questions belong in the
-        [forum thread](https://forum.openwrt.org/t/ipq5018-nss-offload-on-kernel-6-18-with-the-upstream-ethernet-stack-gl-b3000/253014).
-
-        Reporting a board that now works? Say which one, which image or commit, and
-        paste `cat /sys/kernel/debug/qca-dwmac-nss/status` and your measurements.
+        固件出了问题请用"问题反馈"。/ For something broken, use the Bug report form instead.
   - type: textarea
     id: body
     attributes:
-      label: What and why
+      label: 内容 / Details
+      description: 想要什么，为什么需要 / What you would like, and why
     validations:
       required: true
