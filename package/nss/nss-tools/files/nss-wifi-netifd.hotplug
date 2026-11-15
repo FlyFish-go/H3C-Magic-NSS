@@ -10,6 +10,16 @@
 
 [ "$ACTION" = "add" ] || exit 0
 [ -n "$DEVICENAME" ] || exit 0
+
+# LuCI decides once per boot whether to show Network > Wireless (it needs a
+# wifi-device in /etc/config/wireless) and caches the menu in
+# /tmp/luci-indexcache.*.json. On a fresh configuration the radios are
+# written here, some seconds after uhttpd is up, so a page loaded in
+# between - even the login page - hid the menu until the next reboot
+# (measured on HW-B: cache built at 30 s, radios written at 36 s).
+# Drop the cache so the next request rebuilds it.
+rm -f /tmp/luci-indexcache.*.json
+
 # before netifd runs (a stock boot) it reads the file itself
 ubus -S list network.wireless >/dev/null 2>&1 || exit 0
 
