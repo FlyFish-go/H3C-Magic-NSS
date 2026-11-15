@@ -431,6 +431,7 @@ platform_do_upgrade() {
 		glinet_do_upgrade "$1"
 		;;
 	h3c,magic-nx30|\
+	h3c,magic-nx54|\
 	h3c,magic-rc3000-v1|\
 	h3c,magic-rc3000-v2|\
 	h3c,magic-rc3000-v3)
