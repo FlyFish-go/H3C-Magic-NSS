@@ -209,7 +209,7 @@ radio_has_phy() {
   local p="$1" d
   for d in /sys/class/ieee80211/*; do
     [ -e "$d/device" ] || continue
-    case "$(readlink -f "$d/device")" in */devices/"$p") return 0 ;; esac
+    case "$(readlink -f "$d/device")" in */devices/"$p" | */devices/platform/"$p") return 0 ;; esac
   done
   return 1
 }
@@ -249,7 +249,7 @@ wifi_sync_netifd() {
   if wifi_netifd_stale; then
     echo "wireless config changed while the radios loaded - reloading netifd"
     ubus call network reload 2>/dev/null || true
-    return 0
+    # a reload is not a setup barrier: still wait for the radios and retry
   fi
   poll_until 30 wifi_radios_quiet || echo "WARN: radios still missing or being set up after 30 s"
   wifi_retry_down

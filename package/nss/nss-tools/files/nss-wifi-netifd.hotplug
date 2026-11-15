@@ -29,12 +29,38 @@ for r in $(uci -q show wireless | sed -n 's/^wireless\.\([^.=]*\)=wifi-device$/\
 	p="$(uci -q get "wireless.$r.path")"
 	[ -n "$p" ] || continue
 	case "$dev" in
-	*/devices/"$p") ;;
+	*/devices/"$p" | */devices/platform/"$p") ;;
 	*) continue ;;
 	esac
-	ubus call network.wireless status 2>/dev/null | jsonfilter -q -e "@.$r" >/dev/null && exit 0
-	logger -t nss-wifi "netifd has no $r ($DEVICENAME), written after it read the config - reloading netifd"
-	ubus call network reload
+	if ! ubus call network.wireless status 2>/dev/null | jsonfilter -q -e "@.$r" >/dev/null; then
+		logger -t nss-wifi "netifd has no $r ($DEVICENAME), written after it read the config - reloading netifd"
+		ubus call network reload
+	fi
+
+	# Netifd knowing the radio does not mean a setup is coming: a late phy
+	# (QCN9074 on PCIe, NX54) can have its retry land before its section
+	# was read, or be dropped while another radio is being set up, and the
+	# radio stays down. Wait in the background, so the hotplug queue
+	# drains, until netifd is idle, then retry this one radio once if it
+	# is still down. A radio that is up or disabled is left alone.
+	(
+		n=0
+		while [ "$n" -lt 30 ]; do
+			sleep 1
+			n=$((n + 1))
+			[ "$(uci -q get "wireless.$r")" = wifi-device ] || exit 0
+			[ "$(uci -q get "wireless.$r.disabled")" = 1 ] && exit 0
+			status="$(ubus call network.wireless status 2>/dev/null)" || continue
+			[ "$(printf '%s\n' "$status" | jsonfilter -q -e "@.$r.up")" = true ] && exit 0
+			[ "$(printf '%s\n' "$status" | jsonfilter -q -e "@.$r.disabled")" = true ] && exit 0
+			[ "$(printf '%s\n' "$status" | jsonfilter -q -e "@.$r.pending")" = false ] || continue
+			printf '%s\n' "$status" | jsonfilter -q -e '@[*].pending' | grep -q true && continue
+			logger -t nss-wifi "$r ($DEVICENAME) is idle and down - retrying its setup"
+			ubus call network.wireless retry "{\"device\":\"$r\"}" 2>/dev/null || true
+			exit 0
+		done
+		logger -p user.warn -t nss-wifi "$r ($DEVICENAME) did not become idle within 30 s"
+	) </dev/null >/dev/null 2>&1 &
 	exit 0
 done
 
