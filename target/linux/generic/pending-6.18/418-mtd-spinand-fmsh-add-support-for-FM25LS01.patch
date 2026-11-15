@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Feiyang Yu <2541290956@qq.com>
+Date: Sun, 15 Nov 2026 22:00:00 +0800
+Subject: [PATCH] mtd: spinand: fmsh: add support for FM25LS01
+
+FM25LS01 is a 1.8V 1Gbit SPI-NAND from Fudan Micro: 2048-byte pages
+with 128 bytes of OOB, 64 pages per block, 1024 blocks, 1-bit on-die
+ECC, no QE bit. Some H3C NX30-family and HW3000B1 routers ship with it.
+
+The geometry, ECC requirement and OOB layout (user bytes 2-63, ECC in
+64-127, same as FM25G01B) follow the FM25LS01 entry of the Rockchip
+vendor kernel. Read the ECC status with the generic helper, as the
+vendor driver does.
+
+Signed-off-by: Feiyang Yu <2541290956@qq.com>
+---
+--- a/drivers/mtd/nand/spi/fmsh.c
++++ b/drivers/mtd/nand/spi/fmsh.c
+@@ -235,6 +235,15 @@ static const struct spinand_info fmsh_sp
+ 		     SPINAND_HAS_QE_BIT,
+ 		     SPINAND_ECCINFO(&fm25s01bi3_ooblayout,
+ 				      fm25s01bi3_ecc_get_status)),
++	SPINAND_INFO("FM25LS01",
++		     SPINAND_ID(SPINAND_READID_METHOD_OPCODE_DUMMY, 0xa5),
++		     NAND_MEMORG(1, 2048, 128, 64, 1024, 20, 1, 1, 1),
++		     NAND_ECCREQ(1, 512),
++		     SPINAND_INFO_OP_VARIANTS(&read_cache_variants,
++					      &write_cache_variants,
++					      &update_cache_variants),
++		     0,
++		     SPINAND_ECCINFO(&fm25g01b_ooblayout, NULL)),
+ };
+ 
+ static const struct spinand_manufacturer_ops fmsh_spinand_manuf_ops = {
