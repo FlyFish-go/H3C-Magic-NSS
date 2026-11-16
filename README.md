@@ -1,9 +1,9 @@
-# H3C Magic NSS：OpenWrt 主线 + NSS 硬件加速（H3C Magic NX30 / RC3000 / RT3000 / RW3000 系列）
+# H3C Magic NSS：OpenWrt 主线 + NSS 硬件加速（H3C Magic NX30 / RC3000 / RT3000 / RW3000 / NX54 系列）
 
-本仓库只为 H3C Magic 系列（IPQ5018 / IPQ5000，256 MB 内存）构建 OpenWrt。它基于
+本仓库只为 H3C Magic 系列（IPQ5018 / IPQ5000，256 MB 内存；NX54 为 512 MB）构建 OpenWrt。它基于
 [kuncy7/openwrt-nss-edma](https://github.com/kuncy7/openwrt-nss-edma)：OpenWrt 主线、内核 6.18，
 加上高通 NSS 硬件加速（有线 NAT、Wi-Fi offload、PPPoE、VLAN、SQM 队列），以太网走上游的
-`stmmac` 驱动。我们在上面加了四个硬件系列的板级支持和 256 MB 机型需要的调整。
+`stmmac` 驱动。我们在上面加了HW-A/B/C/D 与 NX54 的板级支持和 256 MB 机型需要的调整。
 
 镜像只带日常必需的部分：中文 LuCI（Aurora 主题）、NSS 状态页、TUN（Tailscale/OpenVPN 用）、
 概览页按硬件计数的「端口流量」面板，以及内存压缩交换（zram）；LAN、Wi-Fi 默认设置和 r10 QSDK 相同。
@@ -13,9 +13,11 @@
 > [H3C-RT3000-Product-R1](https://github.com/FlyFish-go/H3C-RT3000-Product-R1) 的 QSDK 固件（r14）。
 > 问题和测试结果请提 [Issue](https://github.com/FlyFish-go/H3C-Magic-NSS/issues)。
 
+当前测试版 **v0.1.0-pre.6**：新增 NX54，修复全新配置时 LuCI 没有「无线」菜单、NX54 GMAC1 和 PCIe 无线启动；新增 Dosilicon DS35M1GA / FMSH FM25LS01 支持（未实机验证）。
+
 ## 和 kuncy7 上游的区别
 
-- 四个硬件系列的板级支持（与 OpenWrt 上游 PR [#26453](https://github.com/openwrt/openwrt/pull/26453) 相同的板子，
+- HW-A/B/C/D 和 NX54 的板级支持（A-D 与 OpenWrt 上游 PR [#26453](https://github.com/openwrt/openwrt/pull/26453) 相同的板子，
   改成本树的 NSS 绑定）。
 - **NSS 固件用 12.2-156，不用 12.5-210。** 12.5 在这几台 256 MB 机器上，遇到重传多的 Wi-Fi 客户端
   （例如老的 11n/11ac USB 网卡）会不断占住 NSS 缓冲，几分钟后有线就断流，最后 hostapd 被 OOM 杀掉。
@@ -40,12 +42,16 @@
 | HW-B | `h3c_magic-rc3000-v1` |
 | HW-C | `h3c_magic-rc3000-v3` |
 | HW-D | `h3c_magic-nx30` |
+| NX54 | `h3c_magic-nx54` |
 
 硬件系列看 [H3C-NX30-Uboot](https://github.com/FlyFish-go/H3C-NX30-Uboot) 救援页的系统信息。同一个零售型号可能是不同的硬件系列，**不要按型号选镜像**。
 
 ## 安装
 
-需要 [H3C-NX30-Uboot](https://github.com/FlyFish-go/H3C-NX30-Uboot) v0.1.0 或更新。
+HW-A/B/C/D 需要 [IPQ50XX-Uboot](https://github.com/FlyFish-go/IPQ50XX-Uboot) v0.1.0 或更新。
+NX54 需要该项目的 **NX54 测试版 U-Boot `nx54-test.1`**，从救援页将 NX54 的 `factory.ubi` 写入另一个系统槽。**BX54E 不支持。**
+NX54 单台早期构建实测有线 NAT 约 940 Mbps、5G 约 630 Mbps、2.4G 约 80 Mbps，按键和指示灯已确认。
+5G BDF 的适配参考 [Art-Chen/openwrt-h3c_nx54](https://github.com/Art-Chen/openwrt-h3c_nx54)，保留原厂板级数据并使用兼容模板；感谢 Art-Chen，2.4G FEM 控制转换也参考了该项目。
 
 1. 进入 U-Boot 救援页，在「固件更新」把 `*-factory.ubi` 写进**你不需要的那个系统槽**
    （另一个槽保留原厂系统或 r10 QSDK，出问题可以切回去）。
@@ -89,7 +95,7 @@ NSS 部分的结构、拓扑和移植说明见 [README.ipq50xx.md](README.ipq50x
 
 OpenWrt main (kernel 6.18) with Qualcomm NSS offload, built only for the H3C Magic family
 (IPQ5018/IPQ5000, 256 MB): HW-A = `h3c_magic-rc3000-v2`, HW-B = `h3c_magic-rc3000-v1`,
-HW-C = `h3c_magic-rc3000-v3`, HW-D = `h3c_magic-nx30`. Based on kuncy7/openwrt-nss-edma; adds the
+HW-C = `h3c_magic-rc3000-v3`, HW-D = `h3c_magic-nx30`, NX54 (512 MB) = `h3c_magic-nx54`. Based on kuncy7/openwrt-nss-edma; adds the
 board support (same boards as openwrt/openwrt#26453), 256 MB memory tuning, and builds with NSS
 firmware 12.2-156 because 12.5-210 leaks host payload buffers on these boards with high-retry Wi-Fi
 clients (kuncy7/openwrt-nss-edma#64). Install `*-factory.ubi` into a spare slot from the
@@ -99,3 +105,5 @@ install from the official feeds, and each release publishes its own package repo
 toolchain libraries such as libstdcpp6) on GitHub Pages, which the image uses instead of the official
 target feed. Defaults are the QSDK ones: LAN 192.168.10.1, Wi-Fi `OpenWrt` / `OpenWrt-5G` with key
 `12345678`, country CN - change the passwords. Preview quality: report issues here.
+
+pre.6 adds NX54 (requires IPQ50XX-Uboot NX54 test release `nx54-test.1`; BX54E is unsupported), fixes the missing Wireless menu on a fresh configuration and NX54 GMAC1/PCIe radio startup, and adds untested DS35M1GA/FM25LS01 SPI-NAND support. Thanks to Art-Chen/openwrt-h3c_nx54 for the BDF conversion reference.
