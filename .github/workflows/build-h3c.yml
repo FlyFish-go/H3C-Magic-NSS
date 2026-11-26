@@ -1,0 +1,256 @@
+name: Build H3C Magic images
+
+# Builds the "h3c" group (.github/ci/ipq50xx/h3c.config): the five H3C Magic
+# images (HW-A rc3000-v2, HW-B rc3000-v1, HW-C rc3000-v3, HW-D nx30, NX54) with
+# LuCI, and the release's package repository, including the proxy packages
+# that the official feeds lack. The result is uploaded as a workflow
+# artifact. Publishing (GitHub release, gh-pages repository, signed update
+# manifest, Gitee) is done by hand from that artifact: the update manifest is
+# signed with a key that does not live on GitHub.
+#
+# The package repository is signed with the key the build generates
+# (private-key.pem); the images carry its public half, so each release's
+# images trust its own repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Release name, must match CONFIG_VERSION_CODE in h3c.config (e.g. v0.1.0-pre.7)"
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  CI_DIR: .github/ci/ipq50xx
+  TARGET: qualcommax/ipq50xx
+
+jobs:
+  build:
+    name: Build h3c
+    runs-on: ubuntu-26.04
+    timeout-minutes: 360
+    env:
+      RELEASE: ${{ inputs.release }}
+    steps:
+      - name: Free disk space
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          df -h / | tail -1
+
+      - name: Install build dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update || true
+          sudo apt-get install -y bzip2 g++ gawk gcc git glibc-source libncurses-dev make rsync \
+            python3-setuptools python3-pyelftools swig unzip zstd
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0          # scripts/getver.sh derives the revision from history
+
+      - name: Feeds
+        run: |
+          set -euo pipefail
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Assemble .config
+        run: |
+          set -euo pipefail
+          frags=("${CI_DIR}/common.config" "${CI_DIR}/kmods-extra.config" "${CI_DIR}/h3c.config")
+          # this tree's builds are not upstream's: drop its build user and domain
+          grep -hv '^CONFIG_KERNEL_BUILD_' "${frags[@]}" >.config
+          make defconfig
+          # every explicit request must survive defconfig (the last fragment wins)
+          dropped=0
+          while IFS= read -r req; do
+            grep -qxF "$req" .config || { echo "::error::defconfig dropped $req"; dropped=1; }
+          done < <(grep -hE '^CONFIG_[A-Za-z0-9_-]+=|^# CONFIG_PACKAGE_[A-Za-z0-9_-]+ is not set' "${CI_DIR}/h3c.config" \
+                   | grep -v -e '^CONFIG_KERNEL_BUILD_' -e 'wpad-basic-mbedtls is not set')
+          [ "$dropped" = 0 ]
+          grep -q '^CONFIG_NSS_FIRMWARE_VERSION_12_2=y' .config
+          grep -q '^CONFIG_PACKAGE_luci-app-nss=y' .config
+          grep -q '^CONFIG_PACKAGE_kmod-wireguard=m' .config
+          grep -qxF "CONFIG_VERSION_CODE=\"H3C-Magic-NSS-${RELEASE}\"" .config \
+            || { echo "::error::h3c.config does not name ${RELEASE}"; exit 1; }
+          grep -qxF "CONFIG_H3C_UPDATE_RELEASE=\"${RELEASE}\"" .config \
+            || { echo "::error::h3c-update does not name ${RELEASE}"; exit 1; }
+          ! grep -q '^CONFIG_VERSION_FILENAMES=y' .config
+          ./scripts/diffconfig.sh >diffconfig-h3c.txt
+          cp .config config-release
+
+      - name: Restore source archives
+        id: dl-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: dl
+          key: dl-h3c-none
+          restore-keys: |
+            dl-h3c-
+
+      - name: Download sources
+        timeout-minutes: 75
+        env:
+          GIT_HTTP_LOW_SPEED_LIMIT: 1000
+          GIT_HTTP_LOW_SPEED_TIME: 60
+          CURL_OPTIONS: --speed-limit 1000 --speed-time 60
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            timeout --kill-after=60 20m make download -j"$(nproc)" && exit 0
+            echo "::warning::download attempt $attempt failed"
+            find dl -maxdepth 1 -name '*.dl' -printf '::warning::unfinished download: %f (%s bytes)\n' || true
+            sleep 5
+          done
+          echo "::error::the sources could not be downloaded in three attempts"
+          exit 1
+
+      - name: Compute source archive key
+        id: dl-key
+        run: |
+          set -euo pipefail
+          sum=$(find dl/ -maxdepth 1 -type f ! -name '*.dl' ! -name '*.hash' -printf '%f %s\n' | LC_ALL=C sort | sha256sum | cut -c1-16)
+          echo "key=dl-h3c-${sum}" >>"$GITHUB_OUTPUT"
+
+      - name: Save source archives
+        if: steps.dl-key.outputs.key != steps.dl-restore.outputs.cache-matched-key
+        uses: actions/cache/save@v6
+        with:
+          path: dl
+          key: ${{ steps.dl-key.outputs.key }}
+
+      - name: Compute ccache key
+        id: ccache
+        run: |
+          set -euo pipefail
+          tree=$(git rev-parse HEAD:toolchain)
+          sum=$({ echo "$tree"; grep -E '^CONFIG_(BINUTILS|GCC|LIBC|MUSL)_' .config; gcc --version; as --version; } \
+                | sha256sum | cut -c1-16)
+          echo "prefix=ccache-h3c-${sum}-" >>"$GITHUB_OUTPUT"
+
+      - name: Restore ccache
+        uses: actions/cache@v6
+        with:
+          path: .ccache
+          key: ${{ steps.ccache.outputs.prefix }}${{ github.run_id }}
+          restore-keys: ${{ steps.ccache.outputs.prefix }}
+
+      - name: Build
+        env:
+          CCACHE_COMPILERCHECK: content
+          CCACHE_MAXSIZE: 4G
+        run: |
+          set -euo pipefail
+          if ! make -j"$(nproc)"; then
+            make -j1 V=s 2>&1 | tail -300
+            exit 1
+          fi
+          CCACHE_DIR="$PWD/.ccache" staging_dir/host/bin/ccache -s || true
+          T="bin/targets/${TARGET}"
+          for p in luci-app-nss luci-i18n-nss- luci-app-h3c-ports luci-i18n-h3c-ports- sqm-scripts-nss wpad-mesh-mbedtls; do
+            for f in bin/packages/*/*/${p}*.apk; do [ -e "$f" ] && cp -v "$f" "$T/packages/"; done
+          done
+          df -h / | tail -1
+
+      # Feed-only packages, not in the images: OpenClash, PassWall and what the
+      # official feeds lack for them. Pinned to the commits pre.6 shipped.
+      - name: Extra packages
+        run: |
+          set -euo pipefail
+          T="bin/targets/${TARGET}"
+          grab() { for i in 1 2 3 4 5 6; do rm -rf "feeds/$1"; mkdir -p "feeds/$1"
+            (cd "feeds/$1" && git init -q && git remote add origin "$2" && git fetch -q --depth 1 origin "$3" && git checkout -q FETCH_HEAD) && return 0; sleep 8; done; return 1; }
+          cp feeds.conf.default feeds.conf
+          cat >>feeds.conf <<'F'
+          src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git^b094b79c32ac4e4de3113a5c44971c6182eee535
+          src-git passwall https://github.com/Openwrt-Passwall/openwrt-passwall.git^aada0ff42f2437b35be36b44acbb462be35306e0
+          src-git openclash https://github.com/vernesong/OpenClash.git^e553e82e01c697aefbe1555261a503f425e00ccd
+          F
+          sed -i 's/^ *//' feeds.conf
+          grab passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git b094b79c32ac4e4de3113a5c44971c6182eee535
+          grab passwall https://github.com/Openwrt-Passwall/openwrt-passwall.git aada0ff42f2437b35be36b44acbb462be35306e0
+          grab openclash https://github.com/vernesong/OpenClash.git e553e82e01c697aefbe1555261a503f425e00ccd
+          ./scripts/feeds update -i passwall_packages passwall openclash
+          X="chinadns-ng dns2socks tcping geoview ipt2socks hysteria v2ray-plugin xray-plugin simple-obfs"
+          ./scripts/feeds install -p passwall_packages $X
+          ./scripts/feeds install -p passwall luci-app-passwall
+          ./scripts/feeds install -p openclash luci-app-openclash
+          grep -E '^CONFIG_(KERNEL_|PACKAGE_kmod-)' .config | sort >kernel-before
+          cat >>.config <<'C'
+          CONFIG_PACKAGE_luci-app-passwall=m
+          CONFIG_PACKAGE_luci-i18n-passwall-zh-cn=m
+          CONFIG_PACKAGE_luci-app-openclash=m
+          CONFIG_PACKAGE_h3c-passwall=m
+          CONFIG_PACKAGE_chinadns-ng=m
+          CONFIG_PACKAGE_dns2socks=m
+          CONFIG_PACKAGE_tcping=m
+          CONFIG_PACKAGE_geoview=m
+          CONFIG_PACKAGE_ipt2socks=m
+          CONFIG_PACKAGE_hysteria=m
+          CONFIG_PACKAGE_v2ray-plugin=m
+          CONFIG_PACKAGE_xray-plugin=m
+          CONFIG_PACKAGE_simple-obfs-client=m
+          C
+          sed -i 's/^ *CONFIG_/CONFIG_/' .config
+          make defconfig >/dev/null
+          grep -E '^CONFIG_(KERNEL_|PACKAGE_kmod-)' .config | sort >kernel-after
+          diff kernel-before kernel-after || { echo "::error::the extra packages changed the kernel config"; exit 1; }
+          for p in luci-app-passwall luci-app-openclash $X; do
+            d=$(find package/feeds -maxdepth 2 -name "$p" | head -1)
+            make "$d/compile" -j"$(nproc)" || { make "$d/compile" -j1 V=s 2>&1 | tail -100; exit 1; }
+          done
+          make package/h3c/h3c-passwall/compile
+          for p in luci-app-passwall luci-i18n-passwall-zh-cn luci-app-openclash h3c-passwall chinadns-ng dns2socks tcping geoview ipt2socks hysteria v2ray-plugin xray-plugin simple-obfs-client; do
+            f=$(find bin/packages -name "${p}-[0-9]*.apk" | head -1)
+            [ -n "$f" ] || { echo "::error::missing $p"; exit 1; }
+            cp -v "$f" "$T/packages/"
+          done
+          rm -f feeds.conf
+          cp config-release .config
+          make package/index
+
+      - name: Check the output
+        run: |
+          set -euo pipefail
+          T="bin/targets/${TARGET}"
+          for dev in rc3000-v1 rc3000-v2 rc3000-v3 nx30 nx54; do
+            for s in factory.ubi sysupgrade.bin; do
+              f="$T/openwrt-qualcommax-ipq50xx-h3c_magic-${dev}-squashfs-${s}"
+              [ -s "$f" ] || { echo "::error::missing $f"; exit 1; }
+            done
+          done
+          [ -s "$T/openwrt-qualcommax-ipq50xx-h3c_magic-nx54-squashfs-factory-nx54.bin" ] \
+            || { echo "::error::missing the NX54 stock-web image"; exit 1; }
+          [ -s "$T/packages/packages.adb" ] || { echo "::error::no package index"; exit 1; }
+          for p in kmod-wireguard luci-app-nss luci-app-passwall luci-app-openclash h3c-passwall libstdcpp6; do
+            compgen -G "$T/packages/${p}-*.apk" >/dev/null || { echo "::error::$p missing from the repository"; exit 1; }
+          done
+          ls -la "$T"
+          echo "packages: $(ls "$T/packages" | wc -l)"
+
+      - name: Collect
+        run: |
+          set -euo pipefail
+          T="bin/targets/${TARGET}"
+          mkdir -p out
+          cp "$T"/openwrt-qualcommax-ipq50xx-h3c_magic-*-squashfs-* out/
+          cp "$T"/*.manifest out/ 2>/dev/null || true
+          cp "$T"/profiles.json out/ 2>/dev/null || true
+          cp -r "$T/packages" out/packages
+          cp config-release diffconfig-h3c.txt out/
+          cp public-key.pem out/apk-public-key.pem 2>/dev/null || true
+          (cd out && find . -type f ! -name SHA256SUMS -printf '%P\n' | LC_ALL=C sort | xargs sha256sum >SHA256SUMS)
+          du -sh out
+
+      - name: Upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: h3c-${{ inputs.release }}
+          path: out
+          retention-days: 14
