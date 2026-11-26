@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 360
     env:
-      RELEASE: ${{ inputs.release }}
+      H3C_RELEASE: ${{ inputs.release }}
     steps:
       - name: Free disk space
         run: |
@@ -77,10 +77,10 @@ jobs:
           grep -q '^CONFIG_NSS_FIRMWARE_VERSION_12_2=y' .config
           grep -q '^CONFIG_PACKAGE_luci-app-nss=y' .config
           grep -q '^CONFIG_PACKAGE_kmod-wireguard=m' .config
-          grep -qxF "CONFIG_VERSION_CODE=\"H3C-Magic-NSS-${RELEASE}\"" .config \
-            || { echo "::error::h3c.config does not name ${RELEASE}"; exit 1; }
-          grep -qxF "CONFIG_H3C_UPDATE_RELEASE=\"${RELEASE}\"" .config \
-            || { echo "::error::h3c-update does not name ${RELEASE}"; exit 1; }
+          grep -qxF "CONFIG_VERSION_CODE=\"H3C-Magic-NSS-${H3C_RELEASE}\"" .config \
+            || { echo "::error::h3c.config does not name ${H3C_RELEASE}"; exit 1; }
+          grep -qxF "CONFIG_H3C_UPDATE_RELEASE=\"${H3C_RELEASE}\"" .config \
+            || { echo "::error::h3c-update does not name ${H3C_RELEASE}"; exit 1; }
           ! grep -q '^CONFIG_VERSION_FILENAMES=y' .config
           ./scripts/diffconfig.sh >diffconfig-h3c.txt
           cp .config config-release
