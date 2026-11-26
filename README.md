@@ -13,12 +13,11 @@
 > [H3C-RT3000-Product-R1](https://github.com/FlyFish-go/H3C-RT3000-Product-R1) 的 QSDK 固件（r14）。
 > 问题和测试结果请提 [Issue](https://github.com/FlyFish-go/H3C-Magic-NSS/issues)。
 
-当前测试版 **v0.1.0-pre.6**：新增 NX54，修复全新配置时 LuCI 没有「无线」菜单、NX54 GMAC1 和 PCIe 无线启动；新增 Dosilicon DS35M1GA / FMSH FM25LS01 支持（未实机验证）。
+当前测试版 **v0.1.0-pre.7**：跟进上游 `ipq50xx-2026.11.24`（内核 6.18.64、NSS 接管和 MDIO 修复），在线更新支持全部硬件系列，NX54 可直接用原厂网页刷入。**本版没有实机测试**，请按硬件系列在 Issue 里报告结果。
 
 ## 和 kuncy7 上游的区别
 
-- HW-A/B/C/D 和 NX54 的板级支持（A-D 与 OpenWrt 上游 PR [#26453](https://github.com/openwrt/openwrt/pull/26453) 相同的板子，
-  改成本树的 NSS 绑定）。
+- HW-A/B/C/D 和 NX54 的板级支持已合并进 kuncy7 上游（A-D 与 OpenWrt 上游 PR [#26453](https://github.com/openwrt/openwrt/pull/26453) 相同的板子），本仓库直接使用上游版本。
 - **NSS 固件用 12.2-156，不用 12.5-210。** 12.5 在这几台 256 MB 机器上，遇到重传多的 Wi-Fi 客户端
   （例如老的 11n/11ac USB 网卡）会不断占住 NSS 缓冲，几分钟后有线就断流，最后 hostapd 被 OOM 杀掉。
   12.2 没有这个问题。详情见 [kuncy7/openwrt-nss-edma#64](https://github.com/kuncy7/openwrt-nss-edma/issues/64)。
@@ -30,7 +29,7 @@
 - 「端口流量」面板（状态 → 概览）：NSS 接管后接口统计不再计数，面板改读交换芯片和网卡的硬件计数器。
 - 每个版本发布自己的软件仓库（内核模块、`libstdcpp6` 等工具链库、本树的软件包），镜像默认使用它。
 - 仓库里还有官方源没有的代理插件：OpenClash（`apk add luci-app-openclash`）和 PassWall（`apk add h3c-passwall`，连同 Xray 和透明代理需要的组件一次装好）。
-- 在线更新：「系统 → 备份/升级 → 在线更新」检测、下载、校验并安装新版本（目前只支持 HW-B，默认不自动检测）。
+- 在线更新：「系统 → 备份/升级 → 在线更新」检测、下载、校验并安装新版本（从 pre.7 起支持 HW-A/B/C/D 和 NX54，默认不自动检测）。
 
 这些改动会继续提交给上游；上游合并后这里也会跟进。
 
@@ -49,7 +48,7 @@
 ## 安装
 
 HW-A/B/C/D 需要 [IPQ50XX-Uboot](https://github.com/FlyFish-go/IPQ50XX-Uboot) v0.1.0 或更新。
-NX54 需要该项目的 **NX54 测试版 U-Boot `nx54-test.1`**，从救援页将 NX54 的 `factory.ubi` 写入另一个系统槽。**BX54E 不支持。**
+NX54 有两种首次安装方式：在原厂管理页面的本地升级里直接选 `NX54-stock-web.bin`（不需要先刷 U-Boot）；或者用该项目的 **NX54 测试版 U-Boot `nx54-test.1`**，从救援页将 NX54 的 `factory.ubi` 写入另一个系统槽。海外版 NX54-EU 的原厂网页只认 EU 包头，测试镜像见 [nx54-eu-test.1](https://github.com/FlyFish-go/H3C-Magic-NSS/releases/tag/nx54-eu-test.1)。**BX54E 不支持。**
 NX54 单台早期构建实测有线 NAT 约 940 Mbps、5G 约 630 Mbps、2.4G 约 80 Mbps，按键和指示灯已确认。
 5G BDF 的适配参考 [Art-Chen/openwrt-h3c_nx54](https://github.com/Art-Chen/openwrt-h3c_nx54)，保留原厂板级数据并使用兼容模板；感谢 Art-Chen，2.4G FEM 控制转换也参考了该项目。
 
@@ -106,4 +105,4 @@ toolchain libraries such as libstdcpp6) on GitHub Pages, which the image uses in
 target feed. Defaults are the QSDK ones: LAN 192.168.10.1, Wi-Fi `OpenWrt` / `OpenWrt-5G` with key
 `12345678`, country CN - change the passwords. Preview quality: report issues here.
 
-pre.6 adds NX54 (requires IPQ50XX-Uboot NX54 test release `nx54-test.1`; BX54E is unsupported), fixes the missing Wireless menu on a fresh configuration and NX54 GMAC1/PCIe radio startup, and adds untested DS35M1GA/FM25LS01 SPI-NAND support. Thanks to Art-Chen/openwrt-h3c_nx54 for the BDF conversion reference.
+pre.7 moves to kuncy7 `ipq50xx-2026.11.24` (kernel 6.18.64, NSS handover and MDIO fixes), where the H3C Magic boards and the NX54 are now merged; online update covers every group, and an NX54 installs from the stock web UI with `NX54-stock-web.bin` (or from the `nx54-test.1` U-Boot rescue page). Overseas NX54-EU units need the test image in `nx54-eu-test.1`. Not tested on hardware. Thanks to Art-Chen/openwrt-h3c_nx54 for the BDF conversion reference.
