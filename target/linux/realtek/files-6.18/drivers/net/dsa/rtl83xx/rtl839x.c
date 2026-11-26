@@ -11,16 +11,12 @@
 #include "qos.h"
 #include "mirror.h"
 #include "mac.h"
-#include "rtl-otto.h"
+#include "otto_dsa.h"
 #include "stats.h"
 #include "vlan.h"
 #include "stp.h"
 
 #define RTL839X_PORT_ISO_CTRL(port)		(0x1400 + ((port) << 3))
-
-#define RTL839X_L2_CTRL_0			(0x3800)
-
-#define RTL839X_L2_TBL_FLUSH_CTRL		(0x3ba0)
 
 #define RTL839X_RMA_BPDU_FLD_PMSK		(0x125C)
 
@@ -48,7 +44,7 @@ static u64 rtl839x_read_debug_matrix(struct otto_dsa_priv *priv, int port)
 	return ((u64)v[0] << 32) | v[1];
 }
 
-void rtldsa_839x_print_matrix(struct otto_dsa_priv *priv)
+static void rtldsa_839x_print_matrix(struct otto_dsa_priv *priv)
 {
 	for (int i = 0; i < 52; i += 4)
 		pr_debug("> %16llx %16llx %16llx %16llx\n",
@@ -132,12 +128,6 @@ const struct rtldsa_config rtldsa_839x_cfg = {
 	.fib_entries = 16384,
 	.l2_uc_tbl = RTL8390_TBL_L2_UC,
 	.l2_cam_tbl = RTL8390_TBL_L2_CAM_UC,
-	.mask_port_reg_be = rtl839x_mask_port_reg_be,
-	.set_port_reg_be = rtl839x_set_port_reg_be,
-	.get_port_reg_be = rtl839x_get_port_reg_be,
-	.mask_port_reg_le = rtl839x_mask_port_reg_le,
-	.set_port_reg_le = rtl839x_set_port_reg_le,
-	.get_port_reg_le = rtl839x_get_port_reg_le,
 	.stat_port_rst = RTL839X_STAT_PORT_RST,
 	.stat_rst = RTL839X_STAT_RST,
 	.stat_port_std_mib = RTL839X_STAT_PORT_STD_MIB,
@@ -151,12 +141,10 @@ const struct rtldsa_config rtldsa_839x_cfg = {
 	.traffic_disable = rtl839x_traffic_disable,
 	.traffic_set = rtl839x_traffic_set,
 	.port_iso_ctrl = rtl839x_port_iso_ctrl,
-	.l2_ctrl_0 = RTL839X_L2_CTRL_0,
 	.l2_ctrl_1 = RTL839X_L2_CTRL_1,
 	.self_mac_trap_ctrl = RTL839X_SPCL_TRAP_SWITCH_MAC_CTRL,
 	.l2_port_aging_out = RTL839X_L2_PORT_AGING_OUT,
 	.set_ageing_time = otto_l2_839x_set_ageing_time,
-	.l2_tbl_flush_ctrl = RTL839X_L2_TBL_FLUSH_CTRL,
 	.isr_glb_src = RTL839X_ISR_GLB_SRC,
 	.isr_port_link_sts_chg = RTL839X_ISR_PORT_LINK_STS_CHG,
 	.imr_port_link_sts_chg = RTL839X_IMR_PORT_LINK_STS_CHG,
@@ -232,6 +220,6 @@ const struct rtldsa_config rtldsa_839x_cfg = {
 	.set_egress_rate = otto_qos_839x_set_egress_rate,
 	.qos_init = otto_qos_839x_init,
 	.lag_set_distribution_algorithm = otto_lag_839x_set_distribution_algorithm,
-	.lag_set_port_members = otto_lag_839x_set_port_members,
+	.lag_set_port_members = otto_lag_83xx_set_port_members,
 	.lag_setup_algomask = otto_lag_83xx_setup_algomask,
 };

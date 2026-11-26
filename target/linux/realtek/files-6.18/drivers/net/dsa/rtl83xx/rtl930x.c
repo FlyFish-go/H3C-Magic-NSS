@@ -13,7 +13,7 @@
 #include "qos.h"
 #include "mirror.h"
 #include "mac.h"
-#include "rtl-otto.h"
+#include "otto_dsa.h"
 #include "stats.h"
 #include "tc.h"
 #include "vlan.h"
@@ -69,7 +69,7 @@
 /* get shift for given led in any set */
 #define RTL930X_LED_SET_LEDX_SHIFT(x) (16 * (x % 2))
 
-void rtldsa_930x_print_matrix(struct otto_dsa_priv *priv)
+static void rtldsa_930x_print_matrix(struct otto_dsa_priv *priv)
 {
 	int tbl = otto_table_acquire(RTL9300_TBL_PORT_ISO_CTRL);
 	u32 v;
@@ -399,12 +399,6 @@ const struct rtldsa_config rtldsa_930x_cfg = {
 	.fib_entries = 16384,
 	.l2_uc_tbl = RTL9300_TBL_L2_UC,
 	.l2_cam_tbl = RTL9300_TBL_L2_CAM_UC,
-	.mask_port_reg_be = rtl838x_mask_port_reg,
-	.set_port_reg_be = rtl838x_set_port_reg,
-	.get_port_reg_be = rtl838x_get_port_reg,
-	.mask_port_reg_le = rtl838x_mask_port_reg,
-	.set_port_reg_le = rtl838x_set_port_reg,
-	.get_port_reg_le = rtl838x_get_port_reg,
 	.stat_port_rst = RTL930X_STAT_PORT_RST,
 	.stat_rst = RTL930X_STAT_RST,
 	.stat_port_std_mib = RTL930X_STAT_PORT_MIB_CNTR,
@@ -418,11 +412,9 @@ const struct rtldsa_config rtldsa_930x_cfg = {
 	.traffic_enable = rtl930x_traffic_enable,
 	.traffic_disable = rtl930x_traffic_disable,
 	.traffic_set = rtl930x_traffic_set,
-	.l2_ctrl_0 = RTL930X_L2_CTRL,
 	.l2_ctrl_1 = RTL930X_L2_AGE_CTRL,
 	.l2_port_aging_out = RTL930X_L2_PORT_AGE_CTRL,
 	.set_ageing_time = otto_l2_930x_set_ageing_time,
-	.l2_tbl_flush_ctrl = RTL930X_L2_TBL_FLUSH_CTRL,
 	.isr_glb_src = RTL930X_ISR_GLB,
 	.isr_port_link_sts_chg = RTL930X_ISR_PORT_LINK_STS_CHG,
 	.imr_port_link_sts_chg = RTL930X_IMR_PORT_LINK_STS_CHG,
@@ -499,6 +491,8 @@ const struct rtldsa_config rtldsa_930x_cfg = {
 	.enable_bcast_flood = otto_l2_930x_enable_bcast_flood,
 	.set_receive_management_action = rtldsa_930x_set_receive_management_action,
 	.queue_sched_set = otto_qos_930x_queue_sched_set,
+	.red_set = otto_qos_930x_red_set,
+	.red_drops_update = otto_qos_930x_red_drops_update,
 	.egress_shaper_set = otto_tc_930x_egress_shaper_set,
 	.qos_init = otto_qos_930x_init,
 	.pri_sel_port_pri = RTL930X_PRI_SEL_PORT_PRI(0),

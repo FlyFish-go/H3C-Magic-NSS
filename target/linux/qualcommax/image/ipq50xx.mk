@@ -314,6 +314,24 @@ define Device/xiaomi_cr8806
 endef
 TARGET_DEVICES += xiaomi_cr8806
 
+define Device/xiaomi_ra80
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := Xiaomi
+	DEVICE_MODEL := AX3000
+	DEVICE_VARIANT := RA80
+	DEVICE_DTS := ipq5018-xiaomi-ra80
+	DEVICE_DTS_CONFIG := config@mp02.1
+	SOC := ipq5018
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	NAND_SIZE := 128m
+	DEVICE_PACKAGES := \
+		ath11k-firmware-ipq5018-qcn6122 \
+		ipq-wifi-xiaomi_ra80
+endef
+TARGET_DEVICES += xiaomi_ra80
+
 define Device/xiaomi_redmi-ax3000-ubootmod
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
@@ -367,6 +385,23 @@ define Device/glinet_gl-x2000
 endef
 TARGET_DEVICES += glinet_gl-x2000
 
+define Device/h3c_magic-bx54-eu
+	$(call Device/h3c_magic-qsdk)
+	DEVICE_MODEL := Magic BX54
+	DEVICE_VARIANT := EU
+	DEVICE_DTS_CONFIG := config@mp03.1-c2
+	H3C_FIT_CONFIGS = config@mp03.1-c2=ipq5018-magic-bx54-eu \
+		config@mp03.1=ipq5018-magic-bx54-eu
+	IMAGES += factory-bx54.bin
+	IMAGE/factory-bx54.bin := append-ubi | h3c-web-fit | \
+		h3c-web-header NX54-EUV100R999 D999
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+		kmod-ath11k-pci \
+		ath11k-firmware-qcn9074 \
+		ipq-wifi-h3c_magic-bx54-eu
+endef
+TARGET_DEVICES += h3c_magic-bx54-eu
+
 define Device/h3c_magic-nx30
 	$(call Device/h3c_magic-qsdk)
 	DEVICE_MODEL := Magic NX30
@@ -392,7 +427,7 @@ define Device/h3c_magic-nx54
 	H3C_FIT_CONFIGS = config@mp03.1=ipq5018-magic-nx54
 	IMAGE_SIZE := 46336k
 	IMAGES += factory-nx54.bin
-	IMAGE/factory-nx54.bin := append-ubi | h3c-web-fit | \
+	IMAGE/factory-nx54.bin := append-ubi | h3c-web-fit | pad-extra 16k | \
 		h3c-web-header NX54V100R999 D999
 	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
 		ath11k-firmware-qcn9074 \
@@ -602,6 +637,19 @@ define Device/linksys_spnmx56
 		ipq-wifi-linksys_spnmx56
 endef
 TARGET_DEVICES += linksys_spnmx56
+
+define Device/liteon_wpx8324
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := Lite-On
+	DEVICE_MODEL := WPX8324
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	SOC := ipq5018
+	DEVICE_DTS_CONFIG := config@mp03.5-c1
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 ipq-wifi-liteon_wpx8324
+endef
+TARGET_DEVICES += liteon_wpx8324
 
 define Device/mercusys_mr80x-v2
 	$(call Device/FitImageLzma)
@@ -826,6 +874,23 @@ endif
 endif
 endef
 TARGET_DEVICES += tplink_mx515v-v1
+
+define Device/ubnt_unifi-6-pro
+	$(call Device/FitImage)
+	$(call Device/EmmcImage)
+	DEVICE_VENDOR := Ubiquiti
+	DEVICE_MODEL := UniFi 6 Pro
+	DEVICE_ALT0_VENDOR := Ubiquiti
+	DEVICE_ALT0_MODEL := U6-Pro
+	SOC := ipq5018
+	DEVICE_DTS_CONFIG := config@a650
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
+		kmod-ath11k-pci \
+		ath11k-firmware-qcn9074 \
+		ipq-wifi-ubnt_unifi-6-pro \
+		kmod-fs-f2fs f2fs-tools
+endef
+TARGET_DEVICES += ubnt_unifi-6-pro
 
 define Device/wallys_dr5018s
 	$(call Device/FitImage)

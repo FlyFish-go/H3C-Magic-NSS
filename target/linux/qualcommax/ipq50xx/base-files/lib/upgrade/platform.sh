@@ -36,6 +36,24 @@ xiaomi_initramfs_prepare() {
 	ubiformat /dev/mtd$kern_mtdnum -y
 }
 
+# tplink_set_boot_idx <slot>: point TP-Link's U-Boot at a rootfs slot.
+# Some units ship with a U-Boot environment whose CRC is bad (seen on an
+# Archer AX55 v4); their U-Boot then runs its built-in defaults. fw_setenv
+# replaces such an environment with the uboot-envtools defaults, whose
+# bootcmd ("run distro_bootcmd") this U-Boot does not have, and the board
+# stops at the U-Boot prompt after the upgrade. Store the stock boot
+# command together with the slot in that case.
+tplink_set_boot_idx() {
+	local script=/tmp/tp_boot_idx.fwenv
+
+	echo "tp_boot_idx $1" > "$script"
+	if fw_printenv 2>&1 >/dev/null | grep -q 'Bad CRC'; then
+		echo "U-Boot environment has a bad CRC, writing bootcmd bootipq as well"
+		echo "bootcmd bootipq" >> "$script"
+	fi
+	fw_setenv -s "$script"
+}
+
 remove_oem_ubi_volume() {
 	local oem_volume_name="$1"
 	local oem_ubivol
@@ -354,18 +372,8 @@ linksys_mx_pre_upgrade() {
 
 platform_check_image() {
 	case "$(board_name)" in
-	cudy,p5)
-		nand_do_platform_check "$(board_name)" "$1"
-		;;
+	cudy,p5|\
 	xiaomi,mi-router-ax3000t-v2)
-		# The stock U-Boot can only attach a kernel UBI that was freshly
-		# ubiformatted, which xiaomi_initramfs_prepare only does when
-		# running from the initramfs. An in-place sysupgrade leaves the
-		# device unbootable ("UBI init error 22").
-		if [ "$(rootfs_type)" != "tmpfs" ]; then
-			v "Boot the initramfs image and run sysupgrade from there."
-			return 1
-		fi
 		nand_do_platform_check "$(board_name)" "$1"
 		;;
 	*)
@@ -430,6 +438,7 @@ platform_do_upgrade() {
 		remove_oem_ubi_volume wifi_fw
 		glinet_do_upgrade "$1"
 		;;
+	h3c,magic-bx54-eu|\
 	h3c,magic-nx30|\
 	h3c,magic-nx54|\
 	h3c,magic-rc3000-v1|\
@@ -459,6 +468,13 @@ platform_do_upgrade() {
 	linksys,mx6200)
 		linksys_bootconfig_pre_upgrade "$1"
 		remove_oem_ubi_volume ubi_rootfs
+		nand_do_upgrade "$1"
+		;;
+	liteon,wpx8324)
+		CI_UBIPART="rootfs"
+		remove_oem_ubi_volume ubi_rootfs
+		remove_oem_ubi_volume bt_fw
+		remove_oem_ubi_volume wifi_fw
 		nand_do_upgrade "$1"
 		;;
 	mercusys,mr80x-v2)
@@ -498,7 +514,7 @@ platform_do_upgrade() {
 		sync
 		nand_do_flash_file "$1" || nand_do_upgrade_failed
 		if [ -z "$UPGRADE_OPT_USE_CURR_PART" ]; then
-			fw_setenv tp_boot_idx "$newtp" || {
+			tplink_set_boot_idx "$newtp" || {
 				echo "failed to set tp_boot_idx"
 				nand_do_upgrade_failed
 			}
@@ -511,7 +527,7 @@ platform_do_upgrade() {
 		# eap650-outdoor-v1/re700x there is no ping-pong on tp_boot_idx:
 		# every upgrade goes to rootfs (mtd17).
 		CI_UBIPART="rootfs"
-		fw_setenv tp_boot_idx 0 || {
+		tplink_set_boot_idx 0 || {
 			echo "failed to set tp_boot_idx 0"
 			return 1
 		}
@@ -537,7 +553,7 @@ platform_do_upgrade() {
 			idx=0
 			CI_UBIPART="rootfs"
 		fi
-		fw_setenv tp_boot_idx $idx || {
+		tplink_set_boot_idx $idx || {
 			echo "failed to set tp_boot_idx $idx"
 			return 1
 		}
@@ -547,6 +563,13 @@ platform_do_upgrade() {
 		remove_oem_ubi_volume tp_data
 		nand_do_upgrade "$1"
 		;;
+	ubnt,unifi-6-pro)
+		# OpenWrt boots from slot 1, slot 0 (0:HLOS) keeps the
+		# signed stock image
+		CI_KERNPART="0:HLOS_1"
+		CI_ROOTPART="log"
+		emmc_do_upgrade "$1"
+		;;
 	wallys,dr5018s)
 		CI_UBIPART="rootfs"
 		remove_oem_ubi_volume debug
@@ -555,7 +578,8 @@ platform_do_upgrade() {
 		remove_oem_ubi_volume wifi_fw
 		nand_do_upgrade "$1"
 		;;
-	xiaomi,cr8806)
+	xiaomi,cr8806|\
+	xiaomi,ra80)
 		# Keep the stock dual-boot layout: upgrade the slot we are
 		# running from and leave the other slot untouched.
 		# bootmiwifi boots slot flag_last_success, or the other one
@@ -657,6 +681,14 @@ platform_do_upgrade() {
 		;;
 	*)
 		default_do_upgrade "$1"
+		;;
+	esac
+}
+
+platform_copy_config() {
+	case "$(board_name)" in
+	ubnt,unifi-6-pro)
+		emmc_copy_config
 		;;
 	esac
 }

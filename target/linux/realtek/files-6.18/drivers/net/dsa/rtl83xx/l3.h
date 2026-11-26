@@ -9,10 +9,9 @@
 
 #include <net/inet_dscp.h>
 
-#include "l3_limits.h"
-#include "rtl-otto.h"
+#include "otto_dsa.h"
 
-struct fib6_info;
+struct seq_file;
 
 #define MAX_SMACS 64
 #define MAX_DMACS 2048
@@ -151,7 +150,7 @@ struct otto_l3_config {
 	void (*get_router_mac)(struct otto_l3_ctrl *ctrl, u32 idx, struct otto_l3_router_mac *m);
 	void (*set_router_mac)(struct otto_l3_ctrl *ctrl, u32 idx, struct otto_l3_router_mac *m);
 	void (*get_nexthop)(struct otto_l3_ctrl *ctrl, int idx, u16 *dmac_id, u16 *interface);
-	void (*set_nexthop)(struct otto_l3_ctrl *ctrl, int idx, u16 dmac_id, u16 interface);
+	int (*set_nexthop)(struct otto_l3_ctrl *ctrl, int idx, u16 dmac_id, u16 interface);
 	int (*route_lookup_hw)(struct otto_l3_ctrl *ctrl, struct otto_l3_route *rt);
 	int (*route_rows_move)(struct otto_l3_ctrl *ctrl, int dst, int src, int count);
 	/* First prefix table row of the IPv6 entry in a slot, the slots counted
@@ -168,6 +167,8 @@ struct otto_l3_config {
 	int (*route_write)(struct otto_l3_ctrl *ctrl, int idx, struct otto_l3_route *rt);
 	int (*setup)(struct otto_l3_ctrl *ctrl);
 	void (*dbgfs_init)(struct otto_l3_ctrl *ctrl);
+	/* Print the router MAC table as the hardware holds it */
+	int (*router_mac_dump)(struct otto_l3_ctrl *ctrl, struct seq_file *s);
 };
 
 struct otto_l3_ctrl {
@@ -194,10 +195,17 @@ struct otto_l3_ctrl {
 	bool prefix_rows_stale;	/* a move failed, the rows are not where we say */
 	bool v4_fwd_off;	/* policy rules keep IPv4 forwarding in software */
 	bool v6_fwd_off;	/* policy rules keep IPv6 forwarding in software */
+	bool fasttrack;	/* only flowtable rules may forward in hardware */
+	/* Shared FIB/flow resources. Lock order: RTNL -> resources -> registers. */
+	struct mutex resource_lock;
 	struct mutex *lock; /* protect register access */
 };
 
 int otto_l3_probe(struct device *dev, struct otto_dsa_priv *priv);
 void otto_l3_remove(struct otto_dsa_priv *priv);
+/* Get requires RTNL. Put needs no RTNL; remove the PIE rule before calling it. */
+int otto_l3_flow_nexthop_get(struct otto_dsa_priv *priv, struct otto_l3_nexthop *nh,
+			     u64 smac, u64 dmac, u16 vlan, int port);
+void otto_l3_flow_nexthop_put(struct otto_dsa_priv *priv, struct otto_l3_nexthop *nh);
 
 #endif /* _OTTO_L3_H */
