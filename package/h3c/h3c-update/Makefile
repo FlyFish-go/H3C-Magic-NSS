@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=h3c-update
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 PKG_LICENSE:=GPL-2.0-only
 
 H3C_LINE:=$(call qstrip,$(CONFIG_H3C_UPDATE_LINE))
@@ -19,7 +19,7 @@ H3C_REPO_nss:=H3C-Magic-NSS
 H3C_REPO:=$(H3C_REPO_$(H3C_LINE))
 
 # QSDK line: one image per build run, so the hardware group follows the one
-# device selected for this run. Only HW-B is enabled for now. The NSS line
+# device selected for this run; only HW-B is enabled on that line. The NSS line
 # builds all boards in one run; its group comes from the image's device tree
 # at run time (see update.sh).
 R_DEV:=CONFIG_TARGET_DEVICE_ipq50xx_arm_DEVICE_h3c

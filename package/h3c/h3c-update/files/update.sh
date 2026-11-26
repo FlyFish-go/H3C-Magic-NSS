@@ -42,10 +42,16 @@ group() {
 		return
 	fi
 	# The NSS build makes every board image in one run, so the group comes
-	# from the image's own device tree: each NSS image carries exactly one.
+	# from the device tree the image booted. An image swaps in its own DTB
+	# only on its own route (config@ of its SoC), so this names the image,
+	# and it is also the board name sysupgrade checks the new image against.
 	[ "$H3C_LINE" = nss ] || return 0
 	case "$(cat /tmp/sysinfo/board_name 2>/dev/null)" in
+	h3c,magic-rc3000-v2) echo HW-A ;;
 	h3c,magic-rc3000-v1) echo HW-B ;;
+	h3c,magic-rc3000-v3) echo HW-C ;;
+	h3c,magic-nx30) echo HW-D ;;
+	h3c,magic-nx54) echo NX54 ;;
 	esac
 }
 
