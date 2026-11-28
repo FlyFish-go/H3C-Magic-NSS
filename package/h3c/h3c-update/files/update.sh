@@ -54,6 +54,7 @@ group() {
 	h3c,magic-nx54) echo NX54 ;;
 	cucc,vs010) echo VS010 ;;
 	lingyan,lyw-30m) echo LYW-30M ;;
+	tcl,t30-pro) echo T30-Pro ;;
 	esac
 }
 
