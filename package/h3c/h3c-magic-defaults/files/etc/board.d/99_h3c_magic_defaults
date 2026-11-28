@@ -9,6 +9,7 @@
 
 case "$(board_name)" in
 cucc,vs010|\
+lingyan,lyw-30m|\
 h3c,magic-nx30|\
 h3c,magic-nx54|\
 h3c,magic-rc3000-v1|\
@@ -26,6 +27,7 @@ board_config_update
 ucidef_set_interface "lan" ipaddr "192.168.10.1"
 case "$(board_name)" in
 cucc,vs010) h3c_hostname=VS010 ;;
+lingyan,lyw-30m) h3c_hostname=LYW-30M ;;
 *) h3c_hostname=H3C-Magic ;;
 esac
 ucidef_set_hostname "$h3c_hostname"
