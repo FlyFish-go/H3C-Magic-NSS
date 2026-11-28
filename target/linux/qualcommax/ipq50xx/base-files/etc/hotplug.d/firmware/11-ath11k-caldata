@@ -33,6 +33,14 @@ case "$FIRMWARE" in
 		ath11k_set_macflag
 		ath11k_remove_regdomain
 		;;
+	cmcc,rax3000q)
+		# A known unit has no MAC in ART (all 0xff); on such
+		# units the MAC is random.
+		caldata_extract "0:art" 0x1000 0x20000
+		wlan_mac=$(mtd_get_mac_binary "0:art" 0xc)
+		ath11k_patch_mac $wlan_mac 0
+		ath11k_set_macflag
+		;;
 	cucc,vs010)
 		caldata_extract "0:art" 0x1000 0x20000
 		wlan_mac=$(mtd_get_mac_binary "0:art" 0xc)
@@ -204,6 +212,12 @@ case "$FIRMWARE" in
 		wlan_mac=$(mtd_get_mac_binary 0:art 18)
 		ath11k_patch_mac $wlan_mac 0
 		ath11k_remove_regdomain
+		ath11k_set_macflag
+		;;
+	cmcc,rax3000q)
+		caldata_extract "0:art" 0x26800 0x20000
+		wlan_mac=$(mtd_get_mac_binary "0:art" 0x12)
+		ath11k_patch_mac $wlan_mac 0
 		ath11k_set_macflag
 		;;
 	cucc,vs010)

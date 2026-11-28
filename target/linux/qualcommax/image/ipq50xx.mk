@@ -175,8 +175,11 @@ define Device/cmcc_rax3000q
 	SOC := ipq5018
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	IMAGE_SIZE := 59392k
+	IMAGE_SIZE := 49152k
 	NAND_SIZE := 128m
+	DEVICE_PACKAGES := \
+		ath11k-firmware-ipq5018-qcn6122 \
+		ipq-wifi-cmcc_rax3000q
 endef
 TARGET_DEVICES += cmcc_rax3000q
 

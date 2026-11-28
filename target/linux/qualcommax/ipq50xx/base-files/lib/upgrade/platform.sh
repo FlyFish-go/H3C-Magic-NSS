@@ -409,7 +409,6 @@ platform_do_upgrade() {
 		;;
 	cmcc,mr3000d-ci|\
 	cmcc,pz-l8|\
-	cmcc,rax3000q|\
 	elecom,wrc-x3000gs2|\
 	elecom,wrc-x3000gst2|\
 	iodata,wn-dax3000gr)
@@ -668,6 +667,7 @@ platform_do_upgrade() {
 		remove_oem_ubi_volume kernel
 		nand_do_upgrade "$1"
 		;;
+	cmcc,rax3000q|\
 	cucc,vs010|\
 	hangxin,hw3000b1|\
 	lingyan,lyw-30m|\
