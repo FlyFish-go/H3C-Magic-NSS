@@ -7,6 +7,7 @@ ipq50xx_setup_interfaces()
 {
 	local board="$1"
 	case $board in
+	cucc,vs010|\
 	elecom,wrc-x3000gs2|\
 	elecom,wrc-x3000gst2|\
 	iodata,wn-dax3000gr|\
@@ -34,7 +35,6 @@ ipq50xx_setup_interfaces()
 	avm,fritzbox-4050|\
 	cmcc,mr3000d-ci|\
 	cmcc,rax3000q|\
-	cucc,vs010|\
 	h3c,magic-bx54-eu|\
 	h3c,magic-nx30|\
 	h3c,magic-nx54|\

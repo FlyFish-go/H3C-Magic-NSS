@@ -13,9 +13,10 @@
 
 /*
  * AP-MP02.1 like the H3C Magic NX30 and RC3000 v1: WAN is GMAC0's own GE
- * PHY, GMAC1 is the QCA8337 trunk with the LAN ports on switch ports 2/3/4.
- * The stock kernel has the same switch bitmaps as the RC3000 v1 (cpu 0x40,
- * lan 0x1e). The order of the LAN ports on the panel is not confirmed yet.
+ * PHY, GMAC1 is the QCA8337 trunk. The stock kernel lists switch ports 1-4
+ * as LAN (lan_bmp 0x1e) while the case has three LAN sockets, and which
+ * socket goes where is not confirmed yet: all four switch ports are
+ * declared, so a test shows the mapping.
  */
 
 / {
@@ -194,6 +195,10 @@
 	pinctrl-names = "default";
 	reset-gpios = <&tlmm 26 GPIO_ACTIVE_LOW>;
 
+	qca8337_0: ethernet-phy@0 {
+		reg = <0>;
+	};
+
 	qca8337_1: ethernet-phy@1 {
 		reg = <1>;
 	};
@@ -226,6 +231,12 @@
 					speed = <1000>;
 					full-duplex;
 				};
+			};
+
+			ethernet-port@1 {
+				reg = <1>;
+				label = "lan4";
+				phy-handle = <&qca8337_0>;
 			};
 
 			ethernet-port@2 {
