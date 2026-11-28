@@ -68,6 +68,7 @@ ALLWIFIBOARDS:= \
 	h3c_magic-rc3000-v1 \
 	h3c_magic-rc3000-v2 \
 	h3c_magic-rc3000-v3 \
+	hangxin_hw3000b1 \
 	huawei_ap4050dn \
 	ignitenet_ss-w2-ac2600 \
 	iodata_wn-dax3000gr \
@@ -308,6 +309,7 @@ $(eval $(call generate-ipq-wifi-package,h3c_magic-nx54,H3C Magic NX54))
 $(eval $(call generate-ipq-wifi-package,h3c_magic-rc3000-v1,H3C Magic RC3000 v1))
 $(eval $(call generate-ipq-wifi-package,h3c_magic-rc3000-v2,H3C Magic RC3000 v2))
 $(eval $(call generate-ipq-wifi-package,h3c_magic-rc3000-v3,H3C Magic RC3000 v3))
+$(eval $(call generate-ipq-wifi-package,hangxin_hw3000b1,Hangxin HW3000B1))
 $(eval $(call generate-ipq-wifi-package,huawei_ap4050dn,Huawei AP4050DN))
 $(eval $(call generate-ipq-wifi-package,ignitenet_ss-w2-ac2600,Ignitenet SS-W2-AC2600))
 $(eval $(call generate-ipq-wifi-package,iodata_wn-dax3000gr,I-O DATA WN-DAX3000GR))

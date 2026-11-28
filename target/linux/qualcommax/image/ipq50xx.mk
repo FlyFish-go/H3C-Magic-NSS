@@ -564,6 +564,26 @@ define Device/h3c_magic-rc3000-v3
 endef
 TARGET_DEVICES += h3c_magic-rc3000-v3
 
+define Device/hangxin_hw3000b1
+	$(call Device/FitImageLzma)
+	$(call Device/UbiFit)
+	# DEVICE_DTS is not derivable here: the default keeps only the last
+	# word after '_', giving ipq5018-hw3000b1.
+	DEVICE_DTS := ipq5018-hangxin-hw3000b1
+	DEVICE_VENDOR := Hangxin
+	DEVICE_MODEL := HW3000B1
+	DEVICE_DTS_CONFIG := config@mp03.3
+	SOC := ipq5018
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	IMAGE_SIZE := 59392k
+	NAND_SIZE := 128m
+	DEVICE_PACKAGES := \
+		ath11k-firmware-ipq5018-qcn6122 \
+		ipq-wifi-hangxin_hw3000b1
+endef
+TARGET_DEVICES += hangxin_hw3000b1
+
 define Device/iodata_wn-dax3000gr
 	$(call Device/FitImageLzma)
 	DEVICE_VENDOR := I-O DATA

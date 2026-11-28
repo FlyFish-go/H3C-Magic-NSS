@@ -81,6 +81,14 @@ case "$FIRMWARE" in
 		ath11k_patch_mac $(macaddr_add $(mtd_get_mac_ascii 0:appsblenv ethaddr) 2) 0
 		ath11k_set_macflag
 		;;
+	hangxin,hw3000b1)
+		# this unit's 0x1000 is all 0xff; stock passes it through anyway
+		caldata_extract "0:art" 0x1000 0x20000
+		# the stock firmware derives the Wi-Fi MACs in macinfo; the
+		# +2/+3 offsets here are the usual convention, not confirmed
+		ath11k_patch_mac $(macaddr_add $(mtd_get_mac_ascii 0:appsblenv ethaddr) 2) 0
+		ath11k_set_macflag
+		;;
 	lingyan,lyw-30m)
 		caldata_extract "0:art" 0x1000 0x20000
 		wlan_mac=$(mtd_get_mac_binary "0:art" 0xc)
@@ -228,6 +236,11 @@ case "$FIRMWARE" in
 	h3c,magic-rc3000-v1|\
 	h3c,magic-rc3000-v2|\
 	h3c,magic-rc3000-v3)
+		caldata_extract "0:art" 0x26800 0x20000
+		ath11k_patch_mac $(macaddr_add $(mtd_get_mac_ascii 0:appsblenv ethaddr) 3) 0
+		ath11k_set_macflag
+		;;
+	hangxin,hw3000b1)
 		caldata_extract "0:art" 0x26800 0x20000
 		ath11k_patch_mac $(macaddr_add $(mtd_get_mac_ascii 0:appsblenv ethaddr) 3) 0
 		ath11k_set_macflag

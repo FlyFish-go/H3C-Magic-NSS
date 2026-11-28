@@ -669,6 +669,7 @@ platform_do_upgrade() {
 		nand_do_upgrade "$1"
 		;;
 	cucc,vs010|\
+	hangxin,hw3000b1|\
 	lingyan,lyw-30m|\
 	ruijie,rg-ma3063|\
 	tcl,t30-pro)

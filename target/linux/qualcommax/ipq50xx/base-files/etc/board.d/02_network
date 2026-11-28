@@ -10,6 +10,7 @@ ipq50xx_setup_interfaces()
 	cucc,vs010|\
 	elecom,wrc-x3000gs2|\
 	elecom,wrc-x3000gst2|\
+	hangxin,hw3000b1|\
 	iodata,wn-dax3000gr|\
 	linksys,mr2000|\
 	linksys,mr5500|\
@@ -117,6 +118,14 @@ ipq50xx_setup_macs()
 	h3c,magic-rc3000-v1|\
 	h3c,magic-rc3000-v2|\
 	h3c,magic-rc3000-v3)
+		label_mac=$(mtd_get_mac_ascii 0:appsblenv ethaddr)
+		[ -n "$label_mac" ] || return
+		ucidef_set_interface_macaddr "wan" "$label_mac"
+		ucidef_set_interface_macaddr "lan" "$(macaddr_add "$label_mac" 1)"
+		ucidef_set_network_device_mac "eth1" "$(macaddr_add "$label_mac" 1)"
+		ucidef_set_label_macaddr "$label_mac"
+		;;
+	hangxin,hw3000b1)
 		label_mac=$(mtd_get_mac_ascii 0:appsblenv ethaddr)
 		[ -n "$label_mac" ] || return
 		ucidef_set_interface_macaddr "wan" "$label_mac"
