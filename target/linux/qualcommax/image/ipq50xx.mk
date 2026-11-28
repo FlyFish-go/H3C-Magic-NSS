@@ -200,6 +200,27 @@ define Device/cucc_vs010
 endef
 TARGET_DEVICES += cucc_vs010
 
+define Device/tcl_t30-pro
+	$(call Device/FitImageLzma)
+	$(call Device/UbiFit)
+	# DEVICE_DTS is not derivable here: the default keeps only the last
+	# word after '_', giving ipq5018-t30-pro.
+	DEVICE_DTS := ipq5018-tcl-t30-pro
+	DEVICE_VENDOR := TCL
+	DEVICE_MODEL := T30 Pro
+	DEVICE_DTS_CONFIG := config@mp02.1
+	SOC := ipq5018
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	# rootfs is 0x39c0000 at 0x980000 in the stock MIBIB
+	IMAGE_SIZE := 59136k
+	NAND_SIZE := 128m
+	DEVICE_PACKAGES := \
+		ath11k-firmware-ipq5018-qcn6122 \
+		ipq-wifi-tcl_t30-pro
+endef
+TARGET_DEVICES += tcl_t30-pro
+
 define Device/cudy_p5
 	$(call Device/FitImageLzma)
 	$(call Device/UbiFit)

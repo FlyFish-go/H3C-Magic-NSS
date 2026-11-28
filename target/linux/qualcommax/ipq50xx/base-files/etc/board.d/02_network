@@ -13,6 +13,7 @@ ipq50xx_setup_interfaces()
 	iodata,wn-dax3000gr|\
 	linksys,mr2000|\
 	linksys,mr5500|\
+	tcl,t30-pro|\
 	tplink,archer-ax53-v2|\
 	tplink,archer-ax55-v1|\
 	tplink,archer-ax58-v2|\
@@ -121,6 +122,17 @@ ipq50xx_setup_macs()
 		ucidef_set_interface_macaddr "wan" "$label_mac"
 		ucidef_set_interface_macaddr "lan" "$(macaddr_add "$label_mac" 1)"
 		ucidef_set_network_device_mac "eth1" "$(macaddr_add "$label_mac" 1)"
+		ucidef_set_label_macaddr "$label_mac"
+		;;
+	tcl,t30-pro)
+		# The stock MAC is ASCII text at the start of the factory
+		# partition (the same rule as genmac.lua in the stock rootfs):
+		# WAN = base, LAN = base - 1. The radios use base + 1 (2.4 GHz)
+		# and base + 2 (5 GHz) in 11-ath11k-caldata.
+		label_mac=$(mtd_get_mac_text factory 0x0)
+		[ -n "$label_mac" ] || return
+		ucidef_set_interface_macaddr "wan" "$label_mac"
+		ucidef_set_interface_macaddr "lan" "$(macaddr_add "$label_mac" -1)"
 		ucidef_set_label_macaddr "$label_mac"
 		;;
 	mercusys,mr80x-v2|\

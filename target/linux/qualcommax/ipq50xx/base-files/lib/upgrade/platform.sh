@@ -670,7 +670,8 @@ platform_do_upgrade() {
 		;;
 	cucc,vs010|\
 	lingyan,lyw-30m|\
-	ruijie,rg-ma3063)
+	ruijie,rg-ma3063|\
+	tcl,t30-pro)
 		# The stock bootipq loader picks the A/B slot from BOOTCONFIG,
 		# not from U-Boot env: always rewrite the OpenWrt "rootfs"
 		# partition in place.
