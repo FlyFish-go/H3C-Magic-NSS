@@ -2,9 +2,9 @@ name: Build H3C Magic images
 
 # Builds the "h3c" group (.github/ci/ipq50xx/h3c.config): the five H3C Magic
 # images (HW-A rc3000-v2, HW-B rc3000-v1, HW-C rc3000-v3, HW-D nx30, NX54), the
-# CUCC VS010 (VS010), the Lingyan LYW-30M (LYW-30M), the TCL T30 Pro
-# (T30-Pro) and the Hangxin HW3000B1 (HW3000B1) with LuCI, and the release's
-# package repository,
+# CUCC VS010 (VS010), the CMCC RAX3000Q (RAX3000Q), the Lingyan LYW-30M
+# (LYW-30M), the TCL T30 Pro (T30-Pro) and the Hangxin HW3000B1 (HW3000B1)
+# with LuCI, and the release's package repository,
 # including the proxy packages that the official feeds lack. The result is
 # uploaded as a workflow artifact. Publishing (GitHub release, gh-pages
 # repository, signed update manifest, Gitee) is done by hand from that
@@ -228,7 +228,7 @@ jobs:
               [ -s "$f" ] || { echo "::error::missing $f"; exit 1; }
             done
           done
-          for dev in cucc_vs010 lingyan_lyw-30m tcl_t30-pro hangxin_hw3000b1; do
+          for dev in cmcc_rax3000q cucc_vs010 lingyan_lyw-30m tcl_t30-pro hangxin_hw3000b1; do
             for s in factory.ubi sysupgrade.bin; do
               f="$T/openwrt-qualcommax-ipq50xx-${dev}-squashfs-${s}"
               [ -s "$f" ] || { echo "::error::missing $f"; exit 1; }
@@ -249,7 +249,7 @@ jobs:
           T="bin/targets/${TARGET}"
           mkdir -p out
           cp "$T"/openwrt-qualcommax-ipq50xx-h3c_magic-*-squashfs-* out/
-          for dev in cucc_vs010 lingyan_lyw-30m tcl_t30-pro hangxin_hw3000b1; do
+          for dev in cmcc_rax3000q cucc_vs010 lingyan_lyw-30m tcl_t30-pro hangxin_hw3000b1; do
             cp "$T"/openwrt-qualcommax-ipq50xx-${dev}-squashfs-* out/
           done
           cp "$T"/*.manifest out/ 2>/dev/null || true

@@ -52,6 +52,7 @@ group() {
 	h3c,magic-rc3000-v3) echo HW-C ;;
 	h3c,magic-nx30) echo HW-D ;;
 	h3c,magic-nx54) echo NX54 ;;
+	cmcc,rax3000q) echo RAX3000Q ;;
 	cucc,vs010) echo VS010 ;;
 	hangxin,hw3000b1) echo HW3000B1 ;;
 	lingyan,lyw-30m) echo LYW-30M ;;

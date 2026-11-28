@@ -8,6 +8,7 @@
 . /lib/functions/uci-defaults.sh
 
 case "$(board_name)" in
+cmcc,rax3000q|\
 cucc,vs010|\
 hangxin,hw3000b1|\
 lingyan,lyw-30m|\
@@ -28,6 +29,7 @@ board_config_update
 # the subnet of the H3C QSDK images, so a switch between the two keeps it
 ucidef_set_interface "lan" ipaddr "192.168.10.1"
 case "$(board_name)" in
+cmcc,rax3000q) h3c_hostname=RAX3000Q ;;
 cucc,vs010) h3c_hostname=VS010 ;;
 hangxin,hw3000b1) h3c_hostname=HW3000B1 ;;
 lingyan,lyw-30m) h3c_hostname=LYW-30M ;;
