@@ -6,7 +6,7 @@
 . /lib/functions.sh
 
 case "$(board_name)" in
-h3c,magic-*) ;;
+h3c,magic-*|cucc,vs010) ;;
 *) exit 0 ;;
 esac
 

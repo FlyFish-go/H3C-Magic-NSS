@@ -52,6 +52,7 @@ group() {
 	h3c,magic-rc3000-v3) echo HW-C ;;
 	h3c,magic-nx30) echo HW-D ;;
 	h3c,magic-nx54) echo NX54 ;;
+	cucc,vs010) echo VS010 ;;
 	esac
 }
 

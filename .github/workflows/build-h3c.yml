@@ -1,12 +1,13 @@
 name: Build H3C Magic images
 
 # Builds the "h3c" group (.github/ci/ipq50xx/h3c.config): the five H3C Magic
-# images (HW-A rc3000-v2, HW-B rc3000-v1, HW-C rc3000-v3, HW-D nx30, NX54) with
-# LuCI, and the release's package repository, including the proxy packages
-# that the official feeds lack. The result is uploaded as a workflow
-# artifact. Publishing (GitHub release, gh-pages repository, signed update
-# manifest, Gitee) is done by hand from that artifact: the update manifest is
-# signed with a key that does not live on GitHub.
+# images (HW-A rc3000-v2, HW-B rc3000-v1, HW-C rc3000-v3, HW-D nx30, NX54) and
+# the CUCC VS010 (VS010) with LuCI, and the release's package repository,
+# including the proxy packages that the official feeds lack. The result is
+# uploaded as a workflow artifact. Publishing (GitHub release, gh-pages
+# repository, signed update manifest, Gitee) is done by hand from that
+# artifact: the update manifest is signed with a key that does not live on
+# GitHub.
 #
 # The package repository is signed with the key the build generates
 # (private-key.pem); the images carry its public half, so each release's
@@ -225,6 +226,10 @@ jobs:
               [ -s "$f" ] || { echo "::error::missing $f"; exit 1; }
             done
           done
+          for s in factory.ubi sysupgrade.bin; do
+            f="$T/openwrt-qualcommax-ipq50xx-cucc_vs010-squashfs-${s}"
+            [ -s "$f" ] || { echo "::error::missing $f"; exit 1; }
+          done
           [ -s "$T/openwrt-qualcommax-ipq50xx-h3c_magic-nx54-squashfs-factory-nx54.bin" ] \
             || { echo "::error::missing the NX54 stock-web image"; exit 1; }
           [ -s "$T/packages/packages.adb" ] || { echo "::error::no package index"; exit 1; }
@@ -240,6 +245,7 @@ jobs:
           T="bin/targets/${TARGET}"
           mkdir -p out
           cp "$T"/openwrt-qualcommax-ipq50xx-h3c_magic-*-squashfs-* out/
+          cp "$T"/openwrt-qualcommax-ipq50xx-cucc_vs010-squashfs-* out/
           cp "$T"/*.manifest out/ 2>/dev/null || true
           cp "$T"/profiles.json out/ 2>/dev/null || true
           cp -r "$T/packages" out/packages

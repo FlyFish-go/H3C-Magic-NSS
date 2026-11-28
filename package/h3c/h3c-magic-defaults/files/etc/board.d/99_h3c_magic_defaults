@@ -8,6 +8,7 @@
 . /lib/functions/uci-defaults.sh
 
 case "$(board_name)" in
+cucc,vs010|\
 h3c,magic-nx30|\
 h3c,magic-nx54|\
 h3c,magic-rc3000-v1|\
@@ -23,7 +24,11 @@ board_config_update
 
 # the subnet of the H3C QSDK images, so a switch between the two keeps it
 ucidef_set_interface "lan" ipaddr "192.168.10.1"
-ucidef_set_hostname "H3C-Magic"
+case "$(board_name)" in
+cucc,vs010) h3c_hostname=VS010 ;;
+*) h3c_hostname=H3C-Magic ;;
+esac
+ucidef_set_hostname "$h3c_hostname"
 [ -f /var/run/uboot-env/owrt_timezone ] || ucidef_set_timezone "CST-8"
 ucidef_set_ntpserver "ntp.aliyun.com" "ntp.tencent.com" "cn.pool.ntp.org" "0.openwrt.pool.ntp.org"
 
