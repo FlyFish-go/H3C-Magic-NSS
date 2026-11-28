@@ -180,6 +180,26 @@ define Device/cmcc_rax3000q
 endef
 TARGET_DEVICES += cmcc_rax3000q
 
+define Device/cucc_vs010
+	$(call Device/FitImageLzma)
+	$(call Device/UbiFit)
+	# DEVICE_DTS is not derivable here: the default keeps only the last
+	# word after '_', giving ipq5018-vs010.
+	DEVICE_DTS := ipq5018-cucc-vs010
+	DEVICE_VENDOR := CUCC
+	DEVICE_MODEL := VS010
+	DEVICE_DTS_CONFIG := config@mp02.1
+	SOC := ipq5018
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	IMAGE_SIZE := 41216k
+	NAND_SIZE := 128m
+	DEVICE_PACKAGES := \
+		ath11k-firmware-ipq5018-qcn6122 \
+		ipq-wifi-cucc_vs010
+endef
+TARGET_DEVICES += cucc_vs010
+
 define Device/cudy_p5
 	$(call Device/FitImageLzma)
 	$(call Device/UbiFit)
