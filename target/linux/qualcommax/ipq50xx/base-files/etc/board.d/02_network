@@ -41,6 +41,7 @@ ipq50xx_setup_interfaces()
 	h3c,magic-rc3000-v1|\
 	h3c,magic-rc3000-v2|\
 	h3c,magic-rc3000-v3|\
+	lingyan,lyw-30m|\
 	linksys,mx2000|\
 	linksys,mx5500|\
 	linksys,spnmx56|\

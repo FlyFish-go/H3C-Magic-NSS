@@ -669,6 +669,7 @@ platform_do_upgrade() {
 		nand_do_upgrade "$1"
 		;;
 	cucc,vs010|\
+	lingyan,lyw-30m|\
 	ruijie,rg-ma3063)
 		# The stock bootipq loader picks the A/B slot from BOOTCONFIG,
 		# not from U-Boot env: always rewrite the OpenWrt "rootfs"

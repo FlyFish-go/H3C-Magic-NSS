@@ -658,6 +658,26 @@ define Device/linksys_spnmx56
 endef
 TARGET_DEVICES += linksys_spnmx56
 
+define Device/lingyan_lyw-30m
+	$(call Device/FitImageLzma)
+	$(call Device/UbiFit)
+	# DEVICE_DTS is not derivable here: the default keeps only the last
+	# word after '_', giving ipq5018-lyw-30m.
+	DEVICE_DTS := ipq5018-lingyan-lyw-30m
+	DEVICE_VENDOR := Lingyan
+	DEVICE_MODEL := LYW-30M
+	DEVICE_DTS_CONFIG := config@mp03.3
+	SOC := ipq5018
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	IMAGE_SIZE := 41216k
+	NAND_SIZE := 128m
+	DEVICE_PACKAGES := \
+		ath11k-firmware-ipq5018-qcn6122 \
+		ipq-wifi-lingyan_lyw-30m
+endef
+TARGET_DEVICES += lingyan_lyw-30m
+
 define Device/liteon_wpx8324
 	$(call Device/FitImage)
 	$(call Device/UbiFit)

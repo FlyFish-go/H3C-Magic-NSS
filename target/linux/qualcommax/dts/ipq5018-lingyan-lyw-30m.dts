@@ -1,0 +1,372 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+/dts-v1/;
+
+#include "ipq5018.dtsi"
+#include "ipq5018-ess.dtsi"
+#include "ipq5018-qcn6122.dtsi"
+#include "ipq5018-nss.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+
+/*
+ * Lingyan LYW-30M, booted by the stock firmware as AP-MP03.3: 256 MiB of
+ * RAM, 128 MiB SPI NAND with the stock dual-firmware layout, QCN6122 for
+ * 5 GHz. WAN is switch port 2 of the QCA8337 on GMAC1; GMAC0 uses the
+ * IPQ5018 GE PHY and is lan3. The QCA8337's CPU port is switch port 6
+ * (SGMII); switch port 1 is not wired to a socket.
+ */
+
+/ {
+	model = "Lingyan LYW-30M";
+	compatible = "lingyan,lyw-30m", "qcom,ipq5018";
+
+	reserved-memory {
+		q6_region_qcn6122_1: q6-region-qcn6122-1@4d200000 {
+			reg = <0x0 0x4d200000 0x0 0xd00000>;
+			no-map;
+		};
+
+		m3_dump_qcn6122_1: m3-dump-qcn6122-1@4df00000 {
+			reg = <0x0 0x4df00000 0x0 0x100000>;
+			no-map;
+		};
+	};
+
+	aliases {
+		serial0 = &blsp1_uart1;
+		label-mac-device = &gmac1;
+		led-boot = &led_power;
+		led-failsafe = &led_status;
+		led-running = &led_power;
+		led-upgrade = &led_status;
+	};
+
+	chosen {
+		bootargs-append = " root=/dev/ubiblock0_1 swiotlb=1 coherent_pool=512K";
+		stdout-path = "serial0:115200n8";
+	};
+
+	keys {
+		compatible = "gpio-keys";
+		pinctrl-0 = <&button_pins>;
+		pinctrl-names = "default";
+
+		button-reset {
+			label = "reset";
+			gpios = <&tlmm 27 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+			debounce-interval = <60>;
+		};
+
+		button-wps {
+			label = "wps";
+			gpios = <&tlmm 38 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
+			debounce-interval = <60>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-0 = <&led_pins>;
+		pinctrl-names = "default";
+
+		led_power: led-power {
+			color = <LED_COLOR_ID_RED>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&tlmm 23 GPIO_ACTIVE_HIGH>;
+		};
+
+		/*
+		 * The green "network" LED has no verified relation to the WAN
+		 * port (Jioyzen labels it green:network), and it serves as the
+		 * failsafe/upgrade indicator, so declare it as status.
+		 */
+		led_status: led-status {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&tlmm 28 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
+
+/* the stock TZ takes 4 MiB here (upstream reserves 2 MiB) */
+&tz_region {
+	reg = <0x0 0x4ac00000 0x0 0x400000>;
+};
+
+&sleep_clk {
+	clock-frequency = <32000>;
+};
+
+&xo_board_clk {
+	clock-div = <4>;
+	clock-mult = <1>;
+};
+
+&blsp1_uart1 {
+	status = "okay";
+
+	pinctrl-0 = <&serial_0_pins>;
+	pinctrl-names = "default";
+};
+
+&prng {
+	status = "okay";
+};
+
+&qfprom {
+	status = "okay";
+};
+
+&qpic_bam {
+	status = "okay";
+};
+
+&qpic_nand {
+	pinctrl-0 = <&qpic_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	flash@0 {
+		compatible = "spi-nand";
+		reg = <0>;
+		nand-ecc-engine = <&qpic_nand>;
+		nand-bus-width = <8>;
+
+		partitions {
+			compatible = "qcom,smem-part";
+
+			partition-0-art {
+				label = "0:art";
+				read-only;
+
+				nvmem-layout {
+					compatible = "fixed-layout";
+					#address-cells = <1>;
+					#size-cells = <1>;
+
+					hw_mac_gmac0: mac-address@0 {
+						reg = <0x0 0x6>;
+					};
+
+					hw_mac_gmac1: mac-address@6 {
+						reg = <0x6 0x6>;
+					};
+				};
+			};
+		};
+	};
+};
+
+&uniphy0 {
+	status = "okay";
+
+	assigned-clocks = <&uniphy0 UNIPHY_CLK_REF>;
+	assigned-clock-rates = <UNIPHY_REFCLK_25MHZ>;
+};
+
+/* MAC0 -> IPQ5018 GE PHY (LAN3) */
+&gmac0 {
+	status = "okay";
+
+	label = "lan3";
+
+	nvmem-cells = <&hw_mac_gmac0>;
+	nvmem-cell-names = "mac-address";
+};
+
+/* MAC1 ---SGMII---> QCA8337 port 6 */
+&gmac1 {
+	status = "okay";
+
+	nvmem-cells = <&hw_mac_gmac1>;
+	nvmem-cell-names = "mac-address";
+	phy-mode = "sgmii";
+
+	fixed-link {
+		speed = <1000>;
+		full-duplex;
+	};
+};
+
+&mdio0 {
+	status = "okay";
+};
+
+&mdio1 {
+	status = "okay";
+
+	pinctrl-0 = <&mdio1_pins>, <&switch_reset_pins>;
+	pinctrl-names = "default";
+	reset-gpios = <&tlmm 39 GPIO_ACTIVE_LOW>;
+	reset-delay-us = <10000>;
+	reset-post-delay-us = <10000>;
+
+	qca8337_1: ethernet-phy@1 {
+		reg = <1>;
+	};
+
+	qca8337_2: ethernet-phy@2 {
+		reg = <2>;
+	};
+
+	qca8337_3: ethernet-phy@3 {
+		reg = <3>;
+	};
+
+	switch1: ethernet-switch@18 {
+		compatible = "qca,qca8337";
+		reg = <0x18>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethernet-ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			ethernet-port@2 {
+				reg = <2>;
+				label = "wan";
+				phy-handle = <&qca8337_1>;
+			};
+
+			ethernet-port@3 {
+				reg = <3>;
+				label = "lan1";
+				phy-handle = <&qca8337_2>;
+			};
+
+			ethernet-port@4 {
+				reg = <4>;
+				label = "lan2";
+				phy-handle = <&qca8337_3>;
+			};
+
+			ethernet-port@6 {
+				reg = <6>;
+				phy-mode = "sgmii";
+				ethernet = <&gmac1>;
+				qca,sgmii-enable-pll;
+
+				fixed-link {
+					speed = <1000>;
+					full-duplex;
+				};
+			};
+		};
+	};
+};
+
+&tlmm {
+	button_pins: button-state {
+		button-pins {
+			pins = "gpio27", "gpio38";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	led_pins: led-state {
+		pins = "gpio23", "gpio28";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-disable;
+	};
+
+	mdio1_pins: mdio-state {
+		mdc-pins {
+			pins = "gpio36";
+			function = "mdc";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		mdio-pins {
+			pins = "gpio37";
+			function = "mdio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	switch_reset_pins: switch-reset-state {
+		pins = "gpio39";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-down;
+	};
+
+	qpic_pins: qpic-state {
+		clock-pins {
+			pins = "gpio9";
+			function = "qspi_clk";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		cs-pins {
+			pins = "gpio8";
+			function = "qspi_cs";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		data-pins {
+			pins = "gpio4", "gpio5", "gpio6", "gpio7";
+			function = "qspi_data";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+
+	serial_0_pins: uart0-state {
+		pins = "gpio20", "gpio21";
+		function = "blsp0_uart0";
+		drive-strength = <8>;
+		bias-disable;
+	};
+
+};
+
+&q6v5_wcss {
+	/* QCN6122 on PCIe1 as user PD 2, reset on GPIO18 (stock mp03.3) */
+	boot-args = <0x2 4 2 18 0 0>;
+	status = "okay";
+};
+
+/* 256 MiB of RAM: low-memory firmware mode */
+&wifi {
+	status = "okay";
+
+	qcom,rproc = <&q6v5_wcss>;
+	qcom,ath11k-calibration-variant = "LINGYAN-LYW-30M";
+	qcom,ath11k-fw-memory-mode = <2>;
+
+	ieee80211-freq-limit = <2400000 2483000>;
+};
+
+&wifi1 {
+	status = "okay";
+
+	qcom,rproc = <&q6v5_wcss>;
+	qcom,ath11k-calibration-variant = "LINGYAN-LYW-30M";
+	qcom,ath11k-fw-memory-mode = <2>;
+
+	ieee80211-freq-limit = <5150000 5850000>;
+
+	memory-region = <&q6_region_qcn6122_1>, <&q6_region_ipq5018>, <&m3_dump_qcn6122_1>;
+	memory-region-names = "q6-region", "m3-region", "m3-dump";
+};
+
+/*
+ * 256 MiB of RAM: NSS heap 16 MiB. Jioyzen saw a throughput regression with
+ * the 8 MiB reservation on this board.
+ */
+&nss_region {
+	reg = <0x0 0x40000000 0x0 0x1000000>;
+};
